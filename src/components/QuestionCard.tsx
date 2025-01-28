@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, HeartCrack, SendHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Option {
-  id: string;
-  text: string;
-}
+import { Option } from "@/types/game";
 
 interface QuestionProps {
   question: string;

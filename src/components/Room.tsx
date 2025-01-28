@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import io from "socket.io-client";
-
+import { GameState, Response } from "@/types/game";
 let socket: any;
-
-interface GameState {
-  startTime: Date;
-  currentQuestion: number;
-}
-
-interface Response {
-  questionId: number;
-  answer: string;
-}
 
 const Room: React.FC = () => {
   const router = useRouter();

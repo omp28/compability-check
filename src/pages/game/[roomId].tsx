@@ -3,23 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { QuestionCard } from "../../components/QuestionCard";
-
-interface Option {
-  id: string;
-  text: string;
-}
-
-interface Question {
-  id: number;
-  text: string;
-  options: Option[];
-  correct: string;
-}
-
-interface Answer {
-  questionId: number;
-  answerId: string;
-}
+import { Question, Answer } from "../../types/game";
 
 const QUESTIONS: Question[] = [
   {
