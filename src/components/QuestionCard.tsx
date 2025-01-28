@@ -17,12 +17,7 @@ interface QuestionProps {
   isLoading?: boolean;
 }
 
-export function QuestionCard({
-  question,
-  options,
-  onSubmit,
-  isLoading = false,
-}: QuestionProps) {
+export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
