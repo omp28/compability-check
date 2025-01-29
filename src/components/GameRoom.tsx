@@ -18,6 +18,7 @@ export const GameRoom = () => {
     gameStatus: "waiting",
   });
   const [session, setSession] = useState<GameSession | null>(null);
+  const [hasAnswered, setHasAnswered] = useState(false);
   const [disconnected, setDisconnected] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,7 +44,6 @@ export const GameRoom = () => {
     };
   }, [router]);
 
-  // In GameRoom component
   const initializeSocket = (sessionData: GameSession) => {
     socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
       query: {
@@ -52,7 +52,6 @@ export const GameRoom = () => {
       },
     });
 
-    // Emit join_game event after connection
     socket.on("connect", () => {
       socket.emit("join_game", {
         roomCode: sessionData.roomId,
@@ -61,19 +60,38 @@ export const GameRoom = () => {
       setDisconnected(false);
     });
 
+    socket.on("disconnect", () => {
+      setDisconnected(true);
+    });
+
     socket.on("game_state", (newState: GameState) => {
       setGameState(newState);
+      setHasAnswered(false);
     });
 
     socket.on("partner_connected", () => {
-      setError(""); // Clear any existing error
+      setError("");
       setGameState((prev) => ({
         ...prev,
         gameStatus: "in_progress",
       }));
     });
 
-    // In GameRoom component's initializeSocket function
+    socket.on("question", (questionData) => {
+      console.log("Received new question:", questionData);
+      setHasAnswered(false);
+      setGameState((prev) => ({
+        ...prev,
+        currentQuestion: questionData.currentQuestion,
+        timeRemaining: questionData.timeRemaining,
+        question: {
+          text: questionData.question.text,
+          options: questionData.question.options,
+        },
+        partnerSubmitted: false,
+      }));
+    });
+
     socket.on("answer_submitted", ({ answeredBy, gameState }) => {
       setGameState((prev) => ({
         ...prev,
@@ -82,33 +100,49 @@ export const GameRoom = () => {
       }));
     });
 
-    // Add a new event handler for when both players have answered
     socket.on("both_answered", () => {
+      console.log("Both players answered");
       setGameState((prev) => ({
         ...prev,
-        partnerSubmitted: false, // Reset partner submitted state
+        partnerSubmitted: false,
       }));
     });
 
-    // Add question event listener
-    socket.on("question", (questionData) => {
+    socket.on("timer_update", ({ timeRemaining }) => {
       setGameState((prev) => ({
         ...prev,
-        currentQuestion: questionData.currentQuestion,
-        question: {
-          text: questionData.question.text,
-          options: questionData.question.options,
-        },
-        timeRemaining: questionData.timeRemaining,
+        timeRemaining,
       }));
+    });
+
+    socket.on("question_timeout", () => {
+      console.log("Question timed out");
+      setHasAnswered(false);
+    });
+
+    socket.on("game_complete", (finalState) => {
+      console.log("Game completed:", finalState);
+
+      setGameState((prev) => ({
+        ...prev,
+        gameStatus: "completed",
+        score: finalState.score,
+      }));
+    });
+
+    socket.on("partner_disconnected", () => {
+      setError("Your partner has disconnected. Please wait...");
     });
   };
 
   const handleAnswer = (optionId: string) => {
-    socket.emit("submit_answer", {
-      roomId: session?.roomId,
-      answer: optionId,
-    });
+    if (!hasAnswered) {
+      setHasAnswered(true);
+      socket.emit("submit_answer", {
+        roomId: session?.roomId,
+        answer: optionId,
+      });
+    }
   };
 
   if (!session) return null;
@@ -152,7 +186,13 @@ export const GameRoom = () => {
             </div>
           </div>
 
-          {gameState.partnerSubmitted && (
+          {hasAnswered && !gameState.partnerSubmitted && (
+            <div className="text-center text-green-600 mb-4">
+              Waiting for partner's answer...
+            </div>
+          )}
+
+          {!hasAnswered && gameState.partnerSubmitted && (
             <div className="text-center text-green-600 mb-4">
               Partner has submitted their answer!
             </div>
@@ -162,6 +202,7 @@ export const GameRoom = () => {
             question={gameState.question?.text || "Loading question..."}
             options={gameState.question?.options || []}
             onSubmit={handleAnswer}
+            isLoading={hasAnswered}
           />
         </div>
       )}

@@ -16,7 +16,7 @@ export interface GameState {
   partnerSubmitted: boolean;
   gameStatus: 'waiting' | 'in_progress' | 'completed';
   score?: number;
-  question?: {  // Add these fields
+  question?: {  
     text: string;
     options: Option[];
   };
