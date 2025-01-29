@@ -1,4 +1,3 @@
-// Core game interfaces
 export interface Option {
   id: string;
   text: string;
@@ -8,32 +7,27 @@ export interface Question {
   id: number;
   text: string;
   options: Option[];
-  correct: string;
 }
 
-export interface Answer {
-  questionId: number;
-  answerId: string;
+export interface GameState {
+  currentQuestion: number;
+  totalQuestions: number;
+  timeRemaining: number;
+  partnerSubmitted: boolean;
+  gameStatus: 'waiting' | 'in_progress' | 'completed';
+  score?: number;
 }
 
 export interface GameSession {
   roomId: string;
-  isActive: boolean;
+  expiryTime: number;
+  gender: 'male' | 'female';
   isHost: boolean;
+  partnerGender?: 'male' | 'female';
 }
 
-export interface GameState {
-  startTime: Date;
-  currentQuestion: number;
-}
-
-export interface Response {
-  questionId: number;
-  answer: string;
-}
-
-export interface Message {
-  message: string;
-  userId: string;
-  timestamp: string;
+export interface RoomValidationResponse {
+  valid: boolean;
+  canJoin: boolean;
+  hostGender?: 'male' | 'female';
 }

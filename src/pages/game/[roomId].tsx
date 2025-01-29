@@ -1,97 +1,82 @@
 "use client";
-
-import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { QuestionCard } from "../../components/QuestionCard";
-import { Question, Answer } from "../../types/game";
+import { GameRoom } from "@/components/GameRoom";
+import { useEffect, useState } from "react";
 
-const QUESTIONS: Question[] = [
-  {
-    id: 1,
-    text: "What is the capital of France?",
-    options: [
-      { id: "paris", text: "Paris" },
-      { id: "london", text: "London" },
-      { id: "berlin", text: "Berlin" },
-      { id: "madrid", text: "Madrid" },
-    ],
-    correct: "paris",
-  },
-  {
-    id: 2,
-    text: "Which planet is known as the Red Planet?",
-    options: [
-      { id: "venus", text: "Venus" },
-      { id: "mars", text: "Mars" },
-      { id: "jupiter", text: "Jupiter" },
-      { id: "saturn", text: "Saturn" },
-    ],
-    correct: "mars",
-  },
-];
-
-export default function GameRoom() {
+export default function GamePage() {
   const router = useRouter();
-  const { roomId } = router.query as { roomId: string };
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [gameComplete, setGameComplete] = useState<boolean>(false);
+  const { roomId } = router.query;
+  const [isValid, setIsValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomId) return;
+    const validateSession = async () => {
+      if (!roomId) return;
 
-    const gameSession = localStorage.getItem("gameSession");
-    if (!gameSession) {
-      router.push("/");
-      return;
-    }
+      const gameSession = localStorage.getItem("gameSession");
 
-    if (currentQuestionIndex >= QUESTIONS.length) {
-      setGameComplete(true);
-      localStorage.removeItem("gameSession");
-      setTimeout(() => router.push("/"), 3000);
-    }
-  }, [roomId, currentQuestionIndex, router]);
+      if (!gameSession) {
+        // Check if this is a shared link join attempt
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/validate-room`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ roomId }),
+            }
+          );
 
-  const handleAnswer = (optionId: string) => {
-    setAnswers((prevAnswers) => [
-      ...prevAnswers,
-      {
-        questionId: QUESTIONS[currentQuestionIndex].id,
-        answerId: optionId,
-      },
-    ]);
+          if (response.ok) {
+            // Room exists and is joinable
+            router.push(`/?join=${roomId}`);
+            return;
+          }
+        } catch (err) {
+          console.error("Failed to validate room:", err);
+        }
+        router.push("/");
+        return;
+      }
 
-    setTimeout(() => {
-      setCurrentQuestionIndex((prev) => prev + 1);
-    }, 1000);
-  };
+      const session = JSON.parse(gameSession);
 
-  if (gameComplete) {
+      // Check if session is expired
+      if (Date.now() > session.expiryTime) {
+        localStorage.removeItem("gameSession");
+        router.push("/");
+        return;
+      }
+
+      // Validate if the room ID matches
+      if (session.roomId !== roomId) {
+        router.push("/");
+        return;
+      }
+
+      setIsValid(true);
+      setIsLoading(false);
+    };
+
+    validateSession();
+  }, [router, roomId]);
+
+  if (isLoading) {
     return (
-      <div className="text-center mt-8">
-        <h2>Game Complete!</h2>
-        <p>Redirecting to home...</p>
+      <div className="min-h-screen bg-gradient-to-b from-pink-50 to-red-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-pink-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Setting up your game...</p>
+        </div>
       </div>
     );
   }
 
-  const currentQuestion = QUESTIONS[currentQuestionIndex];
-
-  if (!currentQuestion) {
-    return <div>Loading...</div>;
+  if (!isValid) {
+    return null;
   }
 
-  return (
-    <div>
-      <div className="text-center mb-4">
-        Question {currentQuestionIndex + 1} of {QUESTIONS.length}
-      </div>
-      <QuestionCard
-        question={currentQuestion.text}
-        options={currentQuestion.options}
-        onSubmit={handleAnswer}
-      />
-    </div>
-  );
+  return <GameRoom />;
 }
