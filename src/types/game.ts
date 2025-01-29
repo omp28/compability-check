@@ -16,6 +16,10 @@ export interface GameState {
   partnerSubmitted: boolean;
   gameStatus: 'waiting' | 'in_progress' | 'completed';
   score?: number;
+  question?: {  // Add these fields
+    text: string;
+    options: Option[];
+  };
 }
 
 export interface GameSession {

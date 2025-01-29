@@ -43,6 +43,7 @@ export const GameRoom = () => {
     };
   }, [router]);
 
+  // In GameRoom component
   const initializeSocket = (sessionData: GameSession) => {
     socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
       query: {
@@ -51,32 +52,54 @@ export const GameRoom = () => {
       },
     });
 
+    // Emit join_game event after connection
     socket.on("connect", () => {
+      socket.emit("join_game", {
+        roomCode: sessionData.roomId,
+        gender: sessionData.gender,
+      });
       setDisconnected(false);
     });
 
-    socket.on("disconnect", () => {
-      setDisconnected(true);
-    });
-
-    socket.on("gameState", (newState: GameState) => {
+    socket.on("game_state", (newState: GameState) => {
       setGameState(newState);
     });
 
-    socket.on("partner_disconnected", () => {
-      setError("Partner disconnected. Waiting for reconnection...");
-    });
-
-    socket.on("game_expired", () => {
-      localStorage.removeItem("gameSession");
-      router.push("/");
-    });
-
-    socket.on("game_complete", (finalScore: number) => {
+    socket.on("partner_connected", () => {
+      setError(""); // Clear any existing error
       setGameState((prev) => ({
         ...prev,
-        gameStatus: "completed",
-        score: finalScore,
+        gameStatus: "in_progress",
+      }));
+    });
+
+    // In GameRoom component's initializeSocket function
+    socket.on("answer_submitted", ({ answeredBy, gameState }) => {
+      setGameState((prev) => ({
+        ...prev,
+        partnerSubmitted: answeredBy !== socket.id,
+        timeRemaining: gameState.timeRemaining,
+      }));
+    });
+
+    // Add a new event handler for when both players have answered
+    socket.on("both_answered", () => {
+      setGameState((prev) => ({
+        ...prev,
+        partnerSubmitted: false, // Reset partner submitted state
+      }));
+    });
+
+    // Add question event listener
+    socket.on("question", (questionData) => {
+      setGameState((prev) => ({
+        ...prev,
+        currentQuestion: questionData.currentQuestion,
+        question: {
+          text: questionData.question.text,
+          options: questionData.question.options,
+        },
+        timeRemaining: questionData.timeRemaining,
       }));
     });
   };
@@ -136,13 +159,8 @@ export const GameRoom = () => {
           )}
 
           <QuestionCard
-            question={`Question ${gameState.currentQuestion + 1}`}
-            options={[
-              { id: "1", text: "Option 1" },
-              { id: "2", text: "Option 2" },
-              { id: "3", text: "Option 3" },
-              { id: "4", text: "Option 4" },
-            ]}
+            question={gameState.question?.text || "Loading question..."}
+            options={gameState.question?.options || []}
             onSubmit={handleAnswer}
           />
         </div>

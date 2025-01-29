@@ -78,13 +78,16 @@ export default function Home() {
     }
   };
 
+  // In Home component (index.tsx)
   const joinRoom = async () => {
     if (!gender) {
       setError("Please select your gender first!");
       return;
     }
 
-    if (roomCode.length !== 6) {
+    const codeToJoin = roomCode || (router.query.join as string); // Get code from input or URL
+
+    if (!codeToJoin || codeToJoin.length !== 6) {
       setError("Please enter a valid room code");
       return;
     }
@@ -97,7 +100,7 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ roomCode, gender }),
+          body: JSON.stringify({ roomCode: codeToJoin, gender }),
         }
       );
 
@@ -105,14 +108,14 @@ export default function Home() {
 
       if (response.ok) {
         const gameSession = {
-          roomId: roomCode,
+          roomId: codeToJoin, // Use the existing room code
           expiryTime: Date.now() + 10 * 60 * 1000,
           gender,
           isHost: false,
         };
 
         localStorage.setItem("gameSession", JSON.stringify(gameSession));
-        router.push(`/game/${roomCode}`);
+        router.push(`/game/${codeToJoin}`);
       } else {
         setError(data.message || "Invalid room code");
       }
