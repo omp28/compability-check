@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, HeartCrack, SendHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Option {
-  id: string;
-  text: string;
-}
+import { Option } from "@/types/game";
 
 interface QuestionProps {
   question: string;
@@ -17,12 +13,7 @@ interface QuestionProps {
   isLoading?: boolean;
 }
 
-export function QuestionCard({
-  question,
-  options,
-  onSubmit,
-  isLoading = false,
-}: QuestionProps) {
+export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
