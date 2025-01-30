@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Timer } from "./Timer";
 import { GameState, GameSession } from "@/types/game";
 import { io, Socket } from "socket.io-client";
+import { GameResults } from "./GameResults";
 
 let socket: Socket;
 
@@ -139,7 +140,7 @@ export const GameRoom = () => {
     if (!hasAnswered) {
       setHasAnswered(true);
       socket.emit("submit_answer", {
-        roomId: session?.roomId,
+        roomCode: session?.roomId,
         answer: optionId,
       });
     }
@@ -227,6 +228,25 @@ export const GameRoom = () => {
             </button>
           </div>
         </motion.div>
+      )}
+
+      {gameState.gameStatus === "completed" && (
+        <GameResults
+          score={gameState.score || 0}
+          matchResults={gameState.matchResults || []}
+          compatibility={
+            gameState.compatibility || {
+              level: "Low",
+              message: "Keep learning!",
+            }
+          }
+          summary={
+            gameState.summary || {
+              totalQuestions: gameState.totalQuestions,
+              matchedAnswers: 0,
+            }
+          }
+        />
       )}
     </div>
   );
