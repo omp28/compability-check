@@ -46,6 +46,11 @@ export const GameRoom = () => {
     };
   }, [router]);
 
+  const handleCleaGameSession = () => {
+    localStorage.removeItem("gameSession");
+    router.push("/");
+  };
+
   const initializeSocket = (sessionData: GameSession) => {
     socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
       query: {
@@ -85,7 +90,7 @@ export const GameRoom = () => {
       setGameState((prev) => ({
         ...prev,
         currentQuestion: questionData.currentQuestion,
-        timeRemaining: questionData.timeRemaining,
+        timeRemaining: 40,
         question: {
           text: questionData.question.text,
           options: questionData.question.options,
@@ -107,6 +112,7 @@ export const GameRoom = () => {
       setGameState((prev) => ({
         ...prev,
         partnerSubmitted: false,
+        timeRemaining: 40,
       }));
     });
 
@@ -120,6 +126,11 @@ export const GameRoom = () => {
     socket.on("question_timeout", () => {
       console.log("Question timed out");
       setHasAnswered(false);
+      setGameState((prev) => ({
+        ...prev,
+        partnerSubmitted: false,
+        timeRemaining: 40,
+      }));
     });
 
     socket.on("game_complete", (finalState) => {
@@ -167,14 +178,20 @@ export const GameRoom = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center justify-center min-h-screen"
+          className="flex items-center justify-center min-h-screen "
         >
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="text-2xl font-bold mb-4 text-black">
               Waiting for your partner...
             </h2>
             <div className="animate-pulse">❤️</div>
             <ShareLinkButton roomId={session.roomId} />
+            <button
+              onClick={handleCleaGameSession}
+              className="mt-4 bg-red-500 text-white px-6 py-3 rounded-t-xl hover:bg-red-600 transition-all absolute bottom-0 left-0 right-0 mx-auto"
+            >
+              Start New Game
+            </button>
           </div>
         </motion.div>
       )}
@@ -223,7 +240,7 @@ export const GameRoom = () => {
               Your Couple Score: {gameState.score}%
             </p>
             <button
-              onClick={() => router.push("/")}
+              onClick={handleCleaGameSession}
               className="bg-pink-500 text-white px-6 py-3 rounded-xl hover:bg-pink-600 transition-all"
             >
               Play Again
