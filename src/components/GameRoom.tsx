@@ -189,7 +189,7 @@ export const GameRoom = () => {
 
           {hasAnswered && !gameState.partnerSubmitted && (
             <div className="text-center text-green-600 mb-4">
-              Waiting for partner's answer...
+              Waiting for partner&apos;s answer...
             </div>
           )}
 

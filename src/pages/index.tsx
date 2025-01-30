@@ -75,6 +75,7 @@ export default function Home() {
       }
     } catch (err) {
       setError("Failed to create room. Please try again.");
+      console.log(err);
     }
   };
 
@@ -121,6 +122,7 @@ export default function Home() {
       }
     } catch (err) {
       setError("Failed to join room. Please try again.");
+      console.log(err);
     }
   };
 
@@ -131,6 +133,7 @@ export default function Home() {
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       setError("Failed to copy link");
+      console.log(err);
     }
   };
 
@@ -147,7 +150,7 @@ export default function Home() {
             fill="currentColor"
           />
           <h1 className="text-2xl font-bold text-gray-800">
-            Valentine's Day Game
+            Valentine&apos;s Day Game
           </h1>
           <p className="text-gray-600 mt-2">
             Connect with your partner and test your compatibility!
