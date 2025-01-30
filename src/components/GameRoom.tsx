@@ -6,6 +6,7 @@ import { Timer } from "./Timer";
 import { GameState, GameSession } from "@/types/game";
 import { io, Socket } from "socket.io-client";
 import { GameResults } from "./GameResults";
+import ShareLinkButton from "./ShareLink";
 
 let socket: Socket;
 
@@ -173,6 +174,7 @@ export const GameRoom = () => {
               Waiting for your partner...
             </h2>
             <div className="animate-pulse">❤️</div>
+            <ShareLinkButton roomId={session.roomId} />
           </div>
         </motion.div>
       )}

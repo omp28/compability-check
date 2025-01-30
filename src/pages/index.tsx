@@ -24,9 +24,7 @@ export default function Home() {
     }
   }, [router]);
 
-  // Add to index.tsx useEffect
   useEffect(() => {
-    // Check for join parameter
     const joinCode = router.query.join;
     if (joinCode && typeof joinCode === "string") {
       setRoomCode(joinCode);
