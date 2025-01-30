@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
+    gtag: (command: 'config' | 'event', idOrEventName: string, params?: Record<string, unknown>) => void;
   }
 }
 
@@ -12,4 +12,3 @@ export const pageview = (url: string) => {
     page_path: url,
   });
 };
-
