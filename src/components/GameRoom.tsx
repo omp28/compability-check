@@ -2,12 +2,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { QuestionCard } from "./QuestionCard";
 import { motion } from "framer-motion";
-import { Timer } from "./Timer";
-import { GameState, GameSession } from "@/types/game";
+import {
+  GameState,
+  GameSession,
+  GameCompleteState,
+  PlayerAnswer,
+} from "@/types/game";
 import { io, Socket } from "socket.io-client";
-import { GameResults } from "./GameResults";
 import ShareLinkButton from "./ShareLink";
 import { TimeLoader } from "./TimeLoader";
+import LoveMeter from "./LoveMeter";
 
 let socket: Socket;
 
@@ -134,13 +138,60 @@ export const GameRoom = () => {
       }));
     });
 
-    socket.on("game_complete", (finalState) => {
+    socket.on("game_complete", (finalState: GameCompleteState) => {
       console.log("Game completed:", finalState);
+
+      // Retrieve user session from localStorage
+      const storedSessionString = localStorage.getItem("gameSession");
+      const userSession = storedSessionString
+        ? JSON.parse(storedSessionString)
+        : null;
+
+      if (!userSession) {
+        console.error("No game session found");
+        return;
+      }
+
+      // Transform the match results
+      const transformedMatchResults = finalState.matchResults.map((result) => {
+        const playerIds = Object.keys(result.playerAnswers);
+
+        // Determine player answers based on available socket IDs
+        const playerAnswers = playerIds.reduce(
+          (acc: Record<string, PlayerAnswer>, playerId) => {
+            const playerData = result.playerAnswers[playerId];
+            acc[playerId] = {
+              gender: playerData.gender,
+              answer: playerData.answer,
+              answerText: playerData.answerText,
+            };
+            return acc;
+          },
+          {}
+        );
+
+        return {
+          ...result,
+          question: result.question,
+          playerAnswers: playerAnswers,
+        };
+      });
 
       setGameState((prev) => ({
         ...prev,
         gameStatus: "completed",
         score: finalState.score,
+        matchResults: transformedMatchResults,
+        compatibility: finalState.compatibility,
+        summary: {
+          ...finalState.summary,
+          unmatchedQuestions: (finalState.summary.unmatchedQuestions ?? []).map(
+            (unmatchedQ) => ({
+              ...unmatchedQ,
+              playerAnswers: unmatchedQ.playerAnswers,
+            })
+          ),
+        },
       }));
     });
 
@@ -164,13 +215,13 @@ export const GameRoom = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-red-50">
       {disconnected && (
-        <div className="fixed top-0 w-full bg-red-500 text-white p-2 text-center">
+        <div className="fixed top-0 w-full bg-red-500 text-white p-2 text-center z-30">
           Disconnected. Trying to reconnect...
         </div>
       )}
 
       {error && (
-        <div className="fixed top-0 w-full bg-yellow-500 text-white p-2 text-center">
+        <div className="fixed top-0 w-full bg-yellow-500 text-white p-2 text-center z-30">
           {error}
         </div>
       )}
@@ -234,39 +285,23 @@ export const GameRoom = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="flex items-center justify-center min-h-screen"
         >
-          <div className="text-center bg-white p-8 rounded-2xl shadow-xl">
-            <h2 className="text-3xl font-bold mb-4">Game Complete!</h2>
-            <div className="text-6xl mb-6">❤️</div>
-            <p className="text-2xl mb-6">
-              Your Couple Score: {gameState.score}%
-            </p>
-            <button
-              onClick={handleCleaGameSession}
-              className="bg-pink-500 text-white px-6 py-3 rounded-xl hover:bg-pink-600 transition-all"
-            >
-              Play Again
-            </button>
-          </div>
+          <LoveMeter
+            score={gameState.score || 0}
+            compatibility={
+              gameState.compatibility || {
+                level: "Low",
+                message: "Keep learning!",
+              }
+            }
+            matchResults={gameState.matchResults || []}
+            summary={
+              gameState.summary || {
+                totalQuestions: gameState.totalQuestions,
+                matchedAnswers: 0,
+              }
+            }
+          />
         </motion.div>
-      )}
-
-      {gameState.gameStatus === "completed" && (
-        <GameResults
-          score={gameState.score || 0}
-          matchResults={gameState.matchResults || []}
-          compatibility={
-            gameState.compatibility || {
-              level: "Low",
-              message: "Keep learning!",
-            }
-          }
-          summary={
-            gameState.summary || {
-              totalQuestions: gameState.totalQuestions,
-              matchedAnswers: 0,
-            }
-          }
-        />
       )}
     </div>
   );

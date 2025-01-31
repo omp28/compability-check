@@ -4,40 +4,47 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Heart, Share2, RotateCw } from "lucide-react";
+import { Share2, RotateCw } from "lucide-react";
+import { FaMale, FaFemale } from "react-icons/fa";
+import { useRouter } from "next/router";
 
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 
 interface Option {
   id: string;
   text: string;
 }
 
-interface Question {
-  id: number;
-  text: string;
-  options: Option[];
-}
-
 interface MatchResult {
   questionId: number;
+  question: string;
+  options: Option[];
   matched: boolean;
-  playerAnswers: [string, string];
-  question: Question;
+  playerAnswers: {
+    [playerId: string]: {
+      gender: string;
+      answer: string;
+      answerText: string;
+    };
+  };
+}
+
+interface Compatibility {
+  level: string;
+  message: string;
+}
+
+interface Summary {
+  totalQuestions: number;
+  matchedAnswers: number;
+  unmatchedQuestions?: MatchResult[];
 }
 
 interface GameResultsProps {
   score: number;
   matchResults: MatchResult[];
-  compatibility: {
-    level: "Low" | "Medium" | "High";
-    message: string;
-  };
-  summary: {
-    totalQuestions: number;
-    matchedAnswers: number;
-  };
+  compatibility: Compatibility;
+  summary: Summary;
 }
 
 const LoveMeter: React.FC<GameResultsProps> = ({
@@ -46,11 +53,14 @@ const LoveMeter: React.FC<GameResultsProps> = ({
   compatibility,
   summary,
 }) => {
-  const [showResults, setShowResults] = useState(false);
-  const [lovePotion, setLovePotion] = useState(score);
+  const [showResults] = useState(false);
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
+  const router = useRouter();
 
-  const mismatchedQuestions = matchResults.filter((result) => !result.matched);
+  // Use unmatchedQuestions from summary if available, otherwise filter matchResults
+  const mismatchedQuestions =
+    summary.unmatchedQuestions ||
+    matchResults.filter((result) => !result.matched);
 
   useEffect(() => {
     if (showResults && score >= 80) {
@@ -80,11 +90,9 @@ const LoveMeter: React.FC<GameResultsProps> = ({
     }
   };
 
-  const getOptionText = (questionId: number, optionId: string) => {
-    const question = matchResults.find(
-      (r) => r.questionId === questionId
-    )?.question;
-    return question?.options.find((o) => o.id === optionId)?.text || "Unknown";
+  const handleCleaGameSession = () => {
+    localStorage.removeItem("gameSession");
+    router.push("/");
   };
 
   const flipCard = (cardId: string) => {
@@ -95,8 +103,27 @@ const LoveMeter: React.FC<GameResultsProps> = ({
     );
   };
 
+  const renderGenderIcon = (gender: string) => {
+    switch (gender.toLowerCase()) {
+      case "male":
+        return <FaMale className="w-5 h-5 text-blue-500" />;
+      case "female":
+        return <FaFemale className="w-5 h-5 text-pink-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getPlayerDetails = (result: MatchResult) => {
+    const playerIds = Object.keys(result.playerAnswers);
+    return playerIds.map((playerId) => ({
+      answer: result.playerAnswers[playerId].answerText,
+      gender: result.playerAnswers[playerId].gender,
+    }));
+  };
+
   return (
-    <div className="max-w-md mx-auto bg-pink-50 p-8 rounded-3xl shadow-xl">
+    <div className="max-w-md mx-auto bg-pink-50 p-8 rounded-3xl shadow-xl pb-16">
       <h1 className="text-3xl font-bold text-center text-pink-600 mb-6">
         Love Meter
       </h1>
@@ -133,8 +160,8 @@ const LoveMeter: React.FC<GameResultsProps> = ({
       </motion.div>
 
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Your Love Potion</h2>
-        <p className="mb-4">{compatibility.message}</p>
+        <h2 className="text-2xl font-bold mb-2 text-black">Your Love Potion</h2>
+        <p className="mb-4 text-black">{compatibility.message}</p>
         <Button onClick={shareResults} className="mb-4">
           <Share2 className="mr-2 h-4 w-4" /> Share Results
         </Button>
@@ -146,11 +173,11 @@ const LoveMeter: React.FC<GameResultsProps> = ({
             key={result.questionId}
             className="bg-white rounded-xl shadow-md overflow-hidden"
           >
-            <h3 className="text-lg font-semibold mb-2 p-4 bg-pink-100">
-              {result.question.text}
+            <h3 className="text-lg font-semibold mb-2 p-4 bg-pink-100 text-black">
+              {result.question}
             </h3>
             <div className="grid grid-cols-2 gap-4 p-4">
-              {[0, 1].map((index) => (
+              {getPlayerDetails(result).map((playerDetail, index) => (
                 <div key={index} className="perspective">
                   <motion.div
                     className="w-full h-32 relative preserve-3d cursor-pointer"
@@ -166,19 +193,22 @@ const LoveMeter: React.FC<GameResultsProps> = ({
                     onClick={() => flipCard(`${result.questionId}-${index}`)}
                   >
                     <div className="absolute w-full h-full backface-hidden bg-white rounded-lg shadow p-4 flex flex-col justify-between">
-                      <p className="text-gray-600">Partner {index + 1}</p>
-                      <p className="text-sm">Click to reveal answer</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-gray-600 ">Partner {index + 1}</p>
+                        {renderGenderIcon(playerDetail.gender)}
+                      </div>
+                      <p className=" text-[10px] text-center text-gray-600">
+                        Click to reveal answer
+                      </p>
                       <RotateCw className="mt-2 mx-auto text-gray-400" />
                     </div>
                     <div className="absolute w-full h-full backface-hidden bg-white rounded-lg shadow p-4 flex flex-col justify-between rotate-y-180">
-                      <p className="text-sm text-gray-600">
-                        Partner {index + 1}
-                      </p>
-                      <p className="font-medium">
-                        {getOptionText(
-                          result.questionId,
-                          result.playerAnswers[index]
-                        )}
+                      <div className="flex justify-between items-center">
+                        <p className=" text-gray-600">Partner {index + 1}</p>
+                        {renderGenderIcon(playerDetail.gender)}
+                      </div>
+                      <p className="font-medium text-black">
+                        {playerDetail.answer}
                       </p>
                     </div>
                   </motion.div>
@@ -189,24 +219,13 @@ const LoveMeter: React.FC<GameResultsProps> = ({
         ))}
       </div>
 
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">Love Potion Meter</h3>
-        <div className="relative pt-1">
-          <Progress value={lovePotion} className="h-4" />
-          <motion.div
-            className="absolute left-0 top-0 mt-1"
-            style={{ left: `${lovePotion}%` }}
-            animate={{ x: -10, y: -10 }}
-            transition={{
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: "reverse",
-              duration: 0.5,
-            }}
-          >
-            <Heart className="text-red-500 fill-current" />
-          </motion.div>
-        </div>
-      </div>
+      {/* play again  */}
+      <button
+        onClick={handleCleaGameSession}
+        className="bg-red-500 text-white px-6 py-3 rounded-t-xl hover:bg-red-600 transition-all fixed bottom-0 left-0 right-0 mx-auto"
+      >
+        Start New Game
+      </button>
     </div>
   );
 };
