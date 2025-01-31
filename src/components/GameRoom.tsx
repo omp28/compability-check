@@ -7,6 +7,7 @@ import { GameState, GameSession } from "@/types/game";
 import { io, Socket } from "socket.io-client";
 import { GameResults } from "./GameResults";
 import ShareLinkButton from "./ShareLink";
+import { TimeLoader } from "./TimeLoader";
 
 let socket: Socket;
 
@@ -199,7 +200,7 @@ export const GameRoom = () => {
       {gameState.gameStatus === "in_progress" && (
         <div className="p-4">
           <div className="mb-4 flex justify-between items-center">
-            <Timer seconds={gameState.timeRemaining} />
+            <TimeLoader seconds={gameState.timeRemaining} />
             <div className="text-sm">
               Question {gameState.currentQuestion + 1}/
               {gameState.totalQuestions}
