@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Copy, Heart } from "lucide-react";
+import LoveMeter from "../components/LoveMeter";
 
 export default function Home() {
   const router = useRouter();
@@ -135,8 +136,39 @@ export default function Home() {
     }
   };
 
+  const gameResults = {
+    score: 75,
+    matchResults: [
+      {
+        questionId: 1,
+        matched: false,
+        playerAnswers: ["a", "b"] as [string, string],
+        question: {
+          id: 1,
+          text: "What's your ideal date night?",
+          options: [
+            { id: "a", text: "Romantic dinner" },
+            { id: "b", text: "Movie night" },
+            { id: "c", text: "Adventure activity" },
+            { id: "d", text: "Cozy night in" },
+          ],
+        },
+      },
+    ],
+    compatibility: {
+      level: "Medium" as "Medium",
+      message:
+        "You have a good connection with room to grow and learn about each other.",
+    },
+    summary: {
+      totalQuestions: 5,
+      matchedAnswers: 3,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-red-50 p-4">
+      <LoveMeter {...gameResults} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
