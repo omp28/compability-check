@@ -10,6 +10,8 @@ import { useRouter } from "next/router";
 
 import { Button } from "@/components/ui/button";
 
+const SESSION_CLEAR_TIMEOUT_MS =
+  Number(process.env.NEXT_PUBLIC_SESSION_TIMEOUT) || 120000;
 interface Option {
   id: string;
   text: string;
@@ -57,7 +59,6 @@ const LoveMeter: React.FC<GameResultsProps> = ({
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
   const router = useRouter();
 
-  // Use unmatchedQuestions from summary if available, otherwise filter matchResults
   const mismatchedQuestions =
     summary.unmatchedQuestions ||
     matchResults.filter((result) => !result.matched);
@@ -71,6 +72,10 @@ const LoveMeter: React.FC<GameResultsProps> = ({
       });
     }
   }, [showResults, score]);
+
+  useEffect(() => {
+    localStorage.removeItem("gameSession");
+  }, []);
 
   const shareResults = () => {
     const text = `We scored ${Math.round(score)}% on our Love Meter! ${

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { Copy, Heart } from "lucide-react";
+import { FaMale, FaFemale } from "react-icons/fa";
 
 export default function Home() {
   const router = useRouter();
@@ -170,23 +171,26 @@ export default function Home() {
           <div className="flex gap-4">
             <button
               onClick={() => setGender("male")}
-              className={`flex-1 p-3 rounded-xl border-2 transition-all ${
+              className={`flex-1 p-3 rounded-xl border-2 transition-all justify-around flex items-center text-black  ${
                 gender === "male"
                   ? "border-blue-500 bg-blue-50"
                   : "border-gray-200"
               }`}
             >
               Male
+              <FaMale className="w-6 h-6 text-blue-500" />
             </button>
+
             <button
               onClick={() => setGender("female")}
-              className={`flex-1 p-3 rounded-xl border-2 transition-all ${
+              className={`flex-1 p-3 rounded-xl border-2 transition-all justify-around flex items-center text-black ${
                 gender === "female"
                   ? "border-pink-500 bg-pink-50"
                   : "border-gray-200"
               }`}
             >
               Female
+              <FaFemale className="w-6 h-6 text-pink-500" />
             </button>
           </div>
         </div>
@@ -233,7 +237,7 @@ export default function Home() {
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="Enter room code"
-              className="flex-1 p-3 rounded-xl border-2 border-gray-200 focus:border-pink-500 outline-none"
+              className="flex-1 p-3 rounded-xl border-2 border-gray-200 focus:border-pink-500 outline-none text-black"
             />
             <button
               onClick={joinRoom}

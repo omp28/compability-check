@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, HeartCrack, SendHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,19 +16,37 @@ interface QuestionProps {
 export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(question);
+
+  // Reset state when question changes
+  useEffect(() => {
+    if (currentQuestion !== question) {
+      setSelectedOption(null);
+      setIsSubmitting(false);
+      setIsAnswerSubmitted(false);
+      setCurrentQuestion(question);
+    }
+  }, [question, currentQuestion]);
 
   const handleSubmit = async () => {
-    if (!selectedOption || isSubmitting) return;
+    if (!selectedOption || isSubmitting || isAnswerSubmitted) return;
 
     setIsSubmitting(true);
     await onSubmit(selectedOption);
     setIsSubmitting(false);
-    setSelectedOption(null);
+    setIsAnswerSubmitted(true);
+  };
+
+  const handleOptionSelect = (optionId: string) => {
+    if (isAnswerSubmitted) return;
+    setSelectedOption(optionId);
   };
 
   return (
     <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gradient-to-b from-pink-50 to-red-50 p-4">
       <motion.div
+        key={question} // Reset animation when question changes
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -52,12 +70,16 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
             {options.map((option) => (
               <motion.button
                 key={option.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedOption(option.id)}
+                whileHover={!isAnswerSubmitted ? { scale: 1.02 } : {}}
+                whileTap={!isAnswerSubmitted ? { scale: 0.98 } : {}}
+                onClick={() => handleOptionSelect(option.id)}
+                disabled={isAnswerSubmitted}
                 className={cn(
                   "w-full p-4 rounded-2xl text-left transition-all duration-200",
-                  "border-2 hover:border-pink-400 hover:bg-pink-50",
+                  "border-2",
+                  isAnswerSubmitted
+                    ? "cursor-not-allowed opacity-75"
+                    : "hover:border-pink-400 hover:bg-pink-50",
                   selectedOption === option.id
                     ? "border-pink-500 bg-pink-50 text-pink-700"
                     : "border-gray-200 text-gray-700"
@@ -81,14 +103,16 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={!isAnswerSubmitted ? { scale: 1.02 } : {}}
+            whileTap={!isAnswerSubmitted ? { scale: 0.98 } : {}}
             onClick={handleSubmit}
-            disabled={!selectedOption || isSubmitting}
+            disabled={!selectedOption || isSubmitting || isAnswerSubmitted}
             className={cn(
               "mt-8 w-full py-4 px-6 rounded-2xl font-medium",
               "transition-all duration-200 flex items-center justify-center gap-2",
-              selectedOption
+              isAnswerSubmitted
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : selectedOption
                 ? "bg-pink-500 text-white hover:bg-pink-600"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             )}
@@ -97,6 +121,11 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
               <>
                 <HeartCrack className="w-5 h-5 animate-pulse" />
                 Sending...
+              </>
+            ) : isAnswerSubmitted ? (
+              <>
+                <Heart className="w-5 h-5" />
+                Answer Submitted
               </>
             ) : (
               <>
