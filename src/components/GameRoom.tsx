@@ -12,6 +12,7 @@ import { io, Socket } from "socket.io-client";
 import ShareLinkButton from "./ShareLink";
 import { TimeLoader } from "./TimeLoader";
 import LoveMeter from "./LoveMeter";
+import MatchResultsViewer from "./MatchResultsViewer";
 
 let socket: Socket;
 
@@ -23,6 +24,7 @@ export const GameRoom = () => {
     timeRemaining: 40,
     partnerSubmitted: false,
     gameStatus: "waiting",
+    matchResults: [],
   });
   const [session, setSession] = useState<GameSession | null>(null);
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -139,7 +141,7 @@ export const GameRoom = () => {
     });
 
     socket.on("game_complete", (finalState: GameCompleteState) => {
-      console.log("Game completed:", finalState);
+      console.log("Game completed:_>>", finalState);
 
       // Retrieve user session from localStorage
       const storedSessionString = localStorage.getItem("gameSession");
@@ -152,8 +154,14 @@ export const GameRoom = () => {
         return;
       }
 
+      if (finalState.summary && finalState.summary.matchedAnswers === 0) {
+        setError("No matches found. Please try again.");
+        return;
+      }
+
       // Transform the match results
-      const transformedMatchResults = finalState.matchResults.map((result) => {
+
+      const transformedMatchResults = finalState.matchResults?.map((result) => {
         const playerIds = Object.keys(result.playerAnswers);
 
         // Determine player answers based on available socket IDs
@@ -203,6 +211,7 @@ export const GameRoom = () => {
   const handleAnswer = (optionId: string) => {
     if (!hasAnswered) {
       setHasAnswered(true);
+      if (!socket) return;
       socket.emit("submit_answer", {
         roomCode: session?.roomId,
         answer: optionId,
@@ -237,7 +246,15 @@ export const GameRoom = () => {
               Waiting for your partner...
             </h2>
             <div className="animate-pulse">❤️</div>
+
+            <div className="mt-4">
+              <p className="text-lg text-gray-700">
+                Room Code: <span className="font-bold">{session.roomId}</span>
+              </p>
+            </div>
+
             <ShareLinkButton roomId={session.roomId} />
+
             <button
               onClick={handleCleaGameSession}
               className="mt-4 bg-red-500 text-white px-6 py-3 rounded-t-xl hover:bg-red-600 transition-all absolute bottom-0 left-0 right-0 mx-auto"
@@ -280,28 +297,33 @@ export const GameRoom = () => {
       )}
 
       {gameState.gameStatus === "completed" && (
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="flex items-center justify-center min-h-screen"
-        >
-          <LoveMeter
-            score={gameState.score || 0}
-            compatibility={
-              gameState.compatibility || {
-                level: "Low",
-                message: "Keep learning!",
+        <div>
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center justify-center min-h-screen"
+          >
+            <LoveMeter
+              score={gameState.score || 0}
+              compatibility={
+                gameState.compatibility || {
+                  level: "Low",
+                  message: "Keep learning!",
+                }
               }
-            }
-            matchResults={gameState.matchResults || []}
-            summary={
-              gameState.summary || {
-                totalQuestions: gameState.totalQuestions,
-                matchedAnswers: 0,
+              matchResults={gameState.matchResults || []}
+              summary={
+                gameState.summary || {
+                  totalQuestions: gameState.totalQuestions,
+                  matchedAnswers: 0,
+                }
               }
-            }
-          />
-        </motion.div>
+            />
+          </motion.div>
+          {gameState.matchResults ? (
+            <MatchResultsViewer gameState={gameState} />
+          ) : null}
+        </div>
       )}
     </div>
   );
