@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { Socket } from "socket.io-client";
+import { useEffect } from "react";
 
 interface PlayerAnswer {
   answerText: string;
@@ -35,7 +37,12 @@ interface GameState {
   }>;
 }
 
-// Emoji mapping for questions
+interface MatchResultsViewerProps {
+  gameState: GameState;
+  socket: Socket;
+  roomCode: string;
+}
+
 const questionEmojis: { [key: string]: string } = {
   "What's your ideal date night?": "💑",
   "How do you prefer to spend a weekend?": "🌞",
@@ -44,11 +51,10 @@ const questionEmojis: { [key: string]: string } = {
   "What's your go-to movie genre?": "🎬",
 };
 
-// Transform the game state data to match the required format
+// Transform the game state for GIf backend
 const transformMatchData = (gameState: GameState): MatchResultsData => {
   return {
     matchResults: gameState.matchResults.map((result) => {
-      // Find player answers by gender
       const maleAnswer = Object.values(result.playerAnswers).find(
         (answer) => answer.gender === "male"
       );
@@ -56,7 +62,6 @@ const transformMatchData = (gameState: GameState): MatchResultsData => {
         (answer) => answer.gender === "female"
       );
 
-      // Add emoji to the question
       const emoji = questionEmojis[result.question] || "❓";
       const questionWithEmoji = `${result.question} ${emoji}`;
 
@@ -72,41 +77,50 @@ const transformMatchData = (gameState: GameState): MatchResultsData => {
   };
 };
 
-const MatchResultsViewer = ({ gameState }: { gameState: GameState }) => {
+const MatchResultsViewer = ({
+  gameState,
+  socket,
+  roomCode,
+}: MatchResultsViewerProps) => {
   const [gifUrl, setGifUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   const matchData = transformMatchData(gameState);
 
-  const generateMatchGif = async () => {
-    try {
+  // Set up socket listeners when component mounts
+  useEffect(() => {
+    socket.on("gif_generation_started", () => {
       setIsLoading(true);
       setError("");
-      setGifUrl("");
+    });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL_VIDEO_BACKEND}/api/generate-match-gif`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(matchData),
-        }
-      );
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || "Failed to generate GIF");
-      }
-      setGifUrl(result.data);
-    } catch (err) {
-      setError("Failed to generate match results. Please try again.");
-      console.error("Error:", err);
-    } finally {
+    socket.on("gif_generated", (response) => {
       setIsLoading(false);
-    }
+      if (response.success) {
+        setGifUrl(response.url);
+      } else {
+        setError("Failed to generate GIF");
+      }
+    });
+
+    socket.on("gif_error", (errorMessage) => {
+      setIsLoading(false);
+      setError(errorMessage);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off("gif_generation_started");
+      socket.off("gif_generated");
+      socket.off("gif_error");
+    };
+  }, [socket]);
+
+  const generateMatchGif = () => {
+    setIsLoading(true);
+    setError("");
+    socket.emit("request_gif", { roomCode, matchData });
   };
 
   return (

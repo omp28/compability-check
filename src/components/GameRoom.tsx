@@ -92,7 +92,6 @@ export const GameRoom = () => {
     });
 
     socket.on("question", (questionData) => {
-      console.log("Received new question:", questionData);
       setHasAnswered(false);
       setGameState((prev) => ({
         ...prev,
@@ -115,7 +114,6 @@ export const GameRoom = () => {
     });
 
     socket.on("both_answered", () => {
-      console.log("Both players answered");
       setGameState((prev) => ({
         ...prev,
         partnerSubmitted: false,
@@ -141,9 +139,7 @@ export const GameRoom = () => {
     });
 
     socket.on("game_complete", (finalState: GameCompleteState) => {
-      console.log("Game completed:_>>", finalState);
-
-      // Retrieve user session from localStorage
+      // Retrieve user session
       const storedSessionString = localStorage.getItem("gameSession");
       const userSession = storedSessionString
         ? JSON.parse(storedSessionString)
@@ -158,8 +154,6 @@ export const GameRoom = () => {
         setError("No matches found. Please try again.");
         return;
       }
-
-      // Transform the match results
 
       const transformedMatchResults = finalState.matchResults?.map((result) => {
         const playerIds = Object.keys(result.playerAnswers);
@@ -321,7 +315,11 @@ export const GameRoom = () => {
             />
           </motion.div>
           {gameState.matchResults ? (
-            <MatchResultsViewer gameState={gameState} />
+            <MatchResultsViewer
+              gameState={gameState}
+              socket={socket}
+              roomCode={session.roomId}
+            />
           ) : null}
         </div>
       )}
