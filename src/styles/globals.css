@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.preserve-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
 .perspective {
   perspective: 1000px;
 }
