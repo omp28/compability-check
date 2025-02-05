@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Socket } from "socket.io-client";
-import { useEffect } from "react";
+import DateVibeCard from "./DareVibeCard";
 
 interface PlayerAnswer {
   answerText: string;
@@ -43,6 +43,14 @@ interface MatchResultsViewerProps {
   roomCode: string;
 }
 
+export interface DatePlannerResult {
+  dateVibe: string;
+  aesthetic: string;
+  emoji: string;
+  coupleHashtag: string;
+  generatedAt: string;
+}
+
 const questionEmojis: { [key: string]: string } = {
   "What's your ideal date night?": "💑",
   "How do you prefer to spend a weekend?": "🌞",
@@ -51,7 +59,6 @@ const questionEmojis: { [key: string]: string } = {
   "What's your go-to movie genre?": "🎬",
 };
 
-// Transform the game state for GIf backend
 const transformMatchData = (gameState: GameState): MatchResultsData => {
   return {
     matchResults: gameState.matchResults.map((result) => {
@@ -83,89 +90,92 @@ const MatchResultsViewer = ({
   roomCode,
 }: MatchResultsViewerProps) => {
   const [gifUrl, setGifUrl] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [datePlan, setDatePlan] = useState<DatePlannerResult | null>(null);
+  const [isGifLoading, setIsGifLoading] = useState<boolean>(false);
+  const [isDatePlanLoading, setIsDatePlanLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   const matchData = transformMatchData(gameState);
 
-  // Set up socket listeners when component mounts
   useEffect(() => {
-    socket.on("gif_generation_started", () => {
-      setIsLoading(true);
-      setError("");
-    });
+    socket.on("gif_generation_started", () => setIsGifLoading(true));
+    socket.on("date_planning_started", () => setIsDatePlanLoading(true));
 
     socket.on("gif_generated", (response) => {
-      setIsLoading(false);
-      if (response.success) {
-        setGifUrl(response.url);
-      } else {
-        setError("Failed to generate GIF");
-      }
+      setIsGifLoading(false);
+      if (response.success) setGifUrl(response.url);
+    });
+
+    socket.on("date_plan_generated", (response) => {
+      setIsDatePlanLoading(false);
+      console.log(response);
+      if (response.success) setDatePlan(response.plan);
     });
 
     socket.on("gif_error", (errorMessage) => {
-      setIsLoading(false);
-      setError(errorMessage);
+      setIsGifLoading(false);
+      setError((prev) => `${prev} GIF Error: ${errorMessage}`);
     });
 
-    // Cleanup listeners on unmount
+    socket.on("date_plan_error", (errorMessage) => {
+      setIsDatePlanLoading(false);
+      setError((prev) => `${prev} Date Plan Error: ${errorMessage}`);
+    });
+
     return () => {
       socket.off("gif_generation_started");
+      socket.off("date_planning_started");
       socket.off("gif_generated");
+      socket.off("date_plan_generated");
       socket.off("gif_error");
+      socket.off("date_plan_error");
     };
   }, [socket]);
 
-  const generateMatchGif = () => {
-    setIsLoading(true);
+  const generateResults = () => {
     setError("");
-    socket.emit("request_gif", { roomCode, matchData });
+    socket.emit("request_match_results", { roomCode, matchData });
   };
 
+  console.log("dateplan", datePlan);
+
   return (
-    <Card className="w-full max-w-2xl mx-auto mt-8">
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center gap-4">
-          <Button
-            onClick={generateMatchGif}
-            disabled={isLoading}
-            className="w-64"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating Match Results...
-              </>
-            ) : (
-              "Generate Match Results GIF"
-            )}
-          </Button>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {isLoading && (
-            <div className="text-center p-4">
-              <p className="text-sm text-gray-600 mt-2">
-                Creating your beautiful match results animation...
-              </p>
-            </div>
-          )}
-          {gifUrl && (
-            <div className="mt-4 rounded-lg overflow-hidden shadow-lg">
-              <img
-                src={gifUrl}
-                alt="Match Results Animation"
-                className="w-full h-auto"
-              />
-              <div className="text-center p-2 bg-gray-50">
-                <p className="text-sm text-gray-600">
-                  Your match results animation is ready!
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
+      <Button
+        onClick={() =>
+          socket.emit("request_match_results", { roomCode, matchData })
+        }
+        disabled={isGifLoading || isDatePlanLoading}
+        className="w-64 mx-auto block"
+      >
+        {isGifLoading || isDatePlanLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Generating Results...
+          </>
+        ) : (
+          "Generate Results"
+        )}
+      </Button>
+
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* GIF Display */}
+        {gifUrl && (
+          <Card className="overflow-hidden">
+            <img
+              src={gifUrl}
+              alt="Match Results Animation"
+              className="w-full h-auto"
+            />
+          </Card>
+        )}
+
+        {/* Date Vibe Display */}
+        <DateVibeCard datePlan={datePlan} isLoading={isDatePlanLoading} />
+      </div>
+    </div>
   );
 };
 

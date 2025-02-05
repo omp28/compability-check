@@ -10,8 +10,6 @@ import { useRouter } from "next/router";
 
 import { Button } from "@/components/ui/button";
 
-const SESSION_CLEAR_TIMEOUT_MS =
-  Number(process.env.NEXT_PUBLIC_SESSION_TIMEOUT) || 120000;
 interface Option {
   id: string;
   text: string;
@@ -224,7 +222,6 @@ const LoveMeter: React.FC<GameResultsProps> = ({
         ))}
       </div>
 
-      {/* play again  */}
       <button
         onClick={handleCleaGameSession}
         className="bg-red-500 text-white px-6 py-3 rounded-t-xl hover:bg-red-600 transition-all fixed bottom-0 left-0 right-0 mx-auto"

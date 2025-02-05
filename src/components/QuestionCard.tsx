@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Heart, HeartCrack, SendHorizontal } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, HeartCrack, SendHorizontal, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Option } from "@/types/game";
+import type { Option } from "@/types/game";
 
 interface QuestionProps {
   question: string;
@@ -19,7 +19,6 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(question);
 
-  // Reset state when question changes
   useEffect(() => {
     if (currentQuestion !== question) {
       setSelectedOption(null);
@@ -44,38 +43,63 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gradient-to-b from-pink-50 to-red-50 p-4">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gradient-to-br from-pink-100 via-red-100 to-purple-100 p-4">
       <motion.div
-        key={question} // Reset animation when question changes
+        key={question}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.5 }}
         className="w-full max-w-md mx-auto"
       >
-        <div className="relative bg-white rounded-3xl shadow-xl p-6 border border-pink-100">
-          <div className="absolute -top-3 -left-3">
-            <Heart className="w-6 h-6 text-pink-400" fill="currentColor" />
-          </div>
-          <div className="absolute -bottom-3 -right-3">
-            <Heart className="w-6 h-6 text-pink-400" fill="currentColor" />
-          </div>
+        <div className="relative bg-white rounded-3xl shadow-xl p-8 border-2 border-pink-200">
+          <motion.div
+            className="absolute -top-4 -left-4 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center"
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 20,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "linear",
+            }}
+          >
+            <Heart className="w-5 h-5 text-white" fill="white" />
+          </motion.div>
+          <motion.div
+            className="absolute -bottom-4 -right-4 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center"
+            animate={{ rotate: -360 }}
+            transition={{
+              duration: 20,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "linear",
+            }}
+          >
+            <Heart className="w-5 h-5 text-white" fill="white" />
+          </motion.div>
 
-          <div className="mb-8 text-center">
+          <motion.div
+            className="mb-8 text-center"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <h2 className="text-2xl font-semibold text-gray-800 leading-tight">
               {question}
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="space-y-3">
-            {options.map((option) => (
+          <AnimatePresence>
+            {options.map((option, index) => (
               <motion.button
                 key={option.id}
-                whileHover={!isAnswerSubmitted ? { scale: 1.02 } : {}}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={!isAnswerSubmitted ? { scale: 1.03 } : {}}
                 whileTap={!isAnswerSubmitted ? { scale: 0.98 } : {}}
                 onClick={() => handleOptionSelect(option.id)}
                 disabled={isAnswerSubmitted}
                 className={cn(
-                  "w-full p-4 rounded-2xl text-left transition-all duration-200",
+                  "w-full p-4 rounded-2xl text-left transition-all duration-200 mb-3",
                   "border-2",
                   isAnswerSubmitted
                     ? "cursor-not-allowed opacity-75"
@@ -88,30 +112,30 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
                 <span className="flex items-center gap-3">
                   <span
                     className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-sm",
+                      "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                       selectedOption === option.id
                         ? "bg-pink-500 text-white"
                         : "bg-gray-100 text-gray-500"
                     )}
                   >
-                    {String.fromCharCode(65 + options.indexOf(option))}
+                    {String.fromCharCode(65 + index)}
                   </span>
                   {option.text}
                 </span>
               </motion.button>
             ))}
-          </div>
+          </AnimatePresence>
 
           <motion.button
-            whileHover={!isAnswerSubmitted ? { scale: 1.02 } : {}}
-            whileTap={!isAnswerSubmitted ? { scale: 0.98 } : {}}
+            whileHover={!isAnswerSubmitted ? { scale: 1.05 } : {}}
+            whileTap={!isAnswerSubmitted ? { scale: 0.95 } : {}}
             onClick={handleSubmit}
             disabled={!selectedOption || isSubmitting || isAnswerSubmitted}
             className={cn(
               "mt-8 w-full py-4 px-6 rounded-2xl font-medium",
               "transition-all duration-200 flex items-center justify-center gap-2",
               isAnswerSubmitted
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                ? "bg-green-500 text-white cursor-not-allowed"
                 : selectedOption
                 ? "bg-pink-500 text-white hover:bg-pink-600"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -124,7 +148,7 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
               </>
             ) : isAnswerSubmitted ? (
               <>
-                <Heart className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5" />
                 Answer Submitted
               </>
             ) : (
