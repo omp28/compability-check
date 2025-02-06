@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Socket } from "socket.io-client";
 import DateVibeCard from "./DareVibeCard";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PlayerAnswer {
   answerText: string;
@@ -94,6 +95,8 @@ const MatchResultsViewer = ({
   const [isGifLoading, setIsGifLoading] = useState<boolean>(false);
   const [isDatePlanLoading, setIsDatePlanLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [showAnswers, setShowAnswers] = useState(false);
 
   const matchData = transformMatchData(gameState);
 
@@ -103,12 +106,14 @@ const MatchResultsViewer = ({
 
     socket.on("gif_generated", (response) => {
       setIsGifLoading(false);
-      if (response.success) setGifUrl(response.url);
+      if (response.success) {
+        setGifUrl(response.url);
+        startQuestionAnimation();
+      }
     });
 
     socket.on("date_plan_generated", (response) => {
       setIsDatePlanLoading(false);
-      console.log(response);
       if (response.success) setDatePlan(response.plan);
     });
 
@@ -132,19 +137,33 @@ const MatchResultsViewer = ({
     };
   }, [socket]);
 
+  const startQuestionAnimation = () => {
+    setCurrentQuestion(0);
+    setShowAnswers(true);
+  };
+
+  useEffect(() => {
+    if (showAnswers && currentQuestion < matchData.matchResults.length - 1) {
+      const timer = setTimeout(() => {
+        setShowAnswers(false);
+        setTimeout(() => {
+          setCurrentQuestion((prev) => prev + 1);
+          setShowAnswers(true);
+        }, 500);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentQuestion, showAnswers, matchData.matchResults.length]);
+
   const generateResults = () => {
     setError("");
     socket.emit("request_match_results", { roomCode, matchData });
   };
 
-  console.log("dateplan", datePlan);
-
   return (
     <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
       <Button
-        onClick={() =>
-          socket.emit("request_match_results", { roomCode, matchData })
-        }
+        onClick={generateResults}
         disabled={isGifLoading || isDatePlanLoading}
         className="w-64 mx-auto block"
       >
@@ -161,18 +180,60 @@ const MatchResultsViewer = ({
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* GIF Display */}
         {gifUrl && (
-          <Card className="overflow-hidden">
+          <Card className="relative overflow-hidden">
             <img
               src={gifUrl}
               alt="Match Results Animation"
               className="w-full h-auto"
             />
+            <AnimatePresence>
+              {showAnswers && (
+                <div className="absolute inset-0 bg-black/30 p-6 flex flex-col items-center justify-center">
+                  <motion.div
+                    initial={{ y: -50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 50, opacity: 0 }}
+                    className="text-2xl text-white text-center font-bold mb-8"
+                  >
+                    {matchData.matchResults[currentQuestion].question}
+                  </motion.div>
+                  <div className="flex justify-between w-full px-8">
+                    <motion.div
+                      initial={{ x: -100, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -100, opacity: 0 }}
+                      className="bg-blue-500/80 p-4 rounded-lg"
+                    >
+                      <div className="text-white text-lg">His Answer:</div>
+                      <div className="text-white font-bold text-xl">
+                        {
+                          matchData.matchResults[currentQuestion].playerAnswers
+                            .male.answerText
+                        }
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ x: 100, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 100, opacity: 0 }}
+                      className="bg-pink-500/80 p-4 rounded-lg"
+                    >
+                      <div className="text-white text-lg">Her Answer:</div>
+                      <div className="text-white font-bold text-xl">
+                        {
+                          matchData.matchResults[currentQuestion].playerAnswers
+                            .female.answerText
+                        }
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+              )}
+            </AnimatePresence>
           </Card>
         )}
 
-        {/* Date Vibe Display */}
         <DateVibeCard datePlan={datePlan} isLoading={isDatePlanLoading} />
       </div>
     </div>

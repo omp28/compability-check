@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, HeartCrack, SendHorizontal, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Option } from "@/types/game";
+import coupleQuotes from "../helpers/quotes";
 
 interface QuestionProps {
   question: string;
@@ -18,6 +19,7 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(question);
+  const [quoteIndex, setQuoteIndex] = useState(0);
 
   useEffect(() => {
     if (currentQuestion !== question) {
@@ -27,6 +29,14 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
       setCurrentQuestion(question);
     }
   }, [question, currentQuestion]);
+
+  useEffect(() => {
+    const quoteInterval = setInterval(() => {
+      setQuoteIndex((prevIndex) => (prevIndex + 1) % coupleQuotes.length);
+    }, 10000);
+
+    return () => clearInterval(quoteInterval);
+  }, []);
 
   const handleSubmit = async () => {
     if (!selectedOption || isSubmitting || isAnswerSubmitted) return;
@@ -84,6 +94,26 @@ export function QuestionCard({ question, options, onSubmit }: QuestionProps) {
             <h2 className="text-2xl font-semibold text-gray-800 leading-tight">
               {question}
             </h2>
+          </motion.div>
+
+          {/* Display the  quote */}
+          <motion.div
+            className="text-center text-pink-600 italic mb-6 text-lg"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            key={quoteIndex}
+          >
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.5 }}
+              >
+                {coupleQuotes[quoteIndex]}
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
 
           <AnimatePresence>

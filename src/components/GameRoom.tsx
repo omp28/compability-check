@@ -367,15 +367,6 @@ export const GameRoom = () => {
                 roomCode={session.roomId}
               />
             )}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleCleaGameSession}
-              className="mt-8 bg-pink-500 text-white px-6 py-3 rounded-xl hover:bg-pink-600 transition-all font-semibold flex items-center justify-center mx-auto"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              Play Again
-            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
