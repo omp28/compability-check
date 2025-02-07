@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Option, GameState } from "@/types/game";
+import type { Option } from "@/types/game";
 import coupleQuotes from "../helpers/quotes";
 
 interface QuestionProps {

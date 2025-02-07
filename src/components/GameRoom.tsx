@@ -11,15 +11,13 @@ import {
 import { io, Socket } from "socket.io-client";
 import ShareLinkButton from "./ShareLink";
 import { TimeLoader } from "./TimeLoader";
-import LoveMeter from "./LoveMeter";
-import MatchResultsViewer from "./MatchResultsViewer";
-import { Heart, Clock, RefreshCw, Sparkles, ArrowRight } from "lucide-react";
+import { Heart, RefreshCw, Sparkles } from "lucide-react";
 import CubeCarousel from "./CubeCarousel";
 
 let socket: Socket;
 
 export const GameRoom = () => {
-  const [currentBg, setCurrentBg] = useState(1);
+  // const [currentBg, setCurrentBg] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -62,7 +60,7 @@ export const GameRoom = () => {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [texts.length]);
 
   useEffect(() => {
     const storedSession = localStorage.getItem("gameSession");

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import LoveMeter from "./LoveMeter";
 import MatchResultsViewer from "./MatchResultsViewer";
 import DateVibeCard from "./DareVibeCard";
 import EnjoymentComponent from "./PlayAgain";
+import { Socket } from "socket.io-client";
 
 interface SlideContent {
   content: React.ReactNode;
@@ -17,26 +17,42 @@ interface DatePlannerResult {
   generatedAt: string;
 }
 
+interface Option {
+  id: string;
+  text: string;
+}
+
+interface MatchResult {
+  questionId: number;
+  question: string;
+  options: Option[];
+  matched: boolean;
+  playerAnswers: {
+    [playerId: string]: {
+      gender: string;
+      answer: string;
+      answerText: string;
+    };
+  };
+}
+
 interface CubeCarouselProps {
   score: number;
   compatibility: {
     level: string;
     message: string;
   };
-  matchResults: any[];
+  matchResults: MatchResult[];
   summary: {
     totalQuestions: number;
     matchedAnswers: number;
   };
-  socket: any;
+  socket: Socket;
   roomCode: string;
 }
 
 const CubeCarousel: React.FC<CubeCarouselProps> = ({
-  score,
-  compatibility,
   matchResults,
-  summary,
   socket,
   roomCode,
 }) => {

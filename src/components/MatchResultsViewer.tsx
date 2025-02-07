@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Heart, RefreshCw } from "lucide-react";
+import { Loader2, Heart } from "lucide-react";
 import type { Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { useCallback } from "react";
 
 interface PlayerAnswer {
   answerText: string;
@@ -93,7 +95,7 @@ const MatchResultsViewer = ({
   onDatePlanGenerated: (plan: DatePlannerResult | null) => void;
 }) => {
   const [gifUrl, setGifUrl] = useState<string>("");
-  const [datePlan, setDatePlan] = useState<DatePlannerResult | null>(null);
+  // const [datePlan, setDatePlan] = useState<DatePlannerResult | null>(null);
   const [isGifLoading, setIsGifLoading] = useState<boolean>(false);
   const [isDatePlanLoading, setIsDatePlanLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -168,24 +170,24 @@ const MatchResultsViewer = ({
     matchData.matchResults.length,
   ]);
 
-  const generateResults = () => {
+  const generateResults = useCallback(() => {
     setError("");
     socket.emit("request_match_results", { roomCode, matchData });
-  };
+  }, [roomCode]);
 
-  const toggleInfiniteLoop = () => {
+  const toggleInfiniteLoop = useCallback(() => {
     setIsInfiniteLoop(!isInfiniteLoop);
     if (!isInfiniteLoop) {
       // Start the animation from the beginning
       setCurrentQuestion(0);
       setShowAnswers(true);
     }
-  };
+  }, [isInfiniteLoop]);
 
   useEffect(() => {
     generateResults();
     toggleInfiniteLoop();
-  }, []);
+  }, [generateResults, toggleInfiniteLoop]);
 
   return (
     <div className="fixed inset-0 w-full h-full bg-gradient-to-b from-pink-100 to-red-200 overflow-hidden">
@@ -200,10 +202,12 @@ const MatchResultsViewer = ({
           <CardContent className="p-0 h-full">
             {gifUrl ? (
               <div className="relative h-full">
-                <img
+                <Image
                   src={gifUrl || "/placeholder.svg"}
                   alt="Match Results Animation"
-                  className="w-full h-full object-cover"
+                  layout="fill"
+                  objectFit="cover"
+                  className="w-full h-full"
                 />
                 <AnimatePresence>
                   {showAnswers && (

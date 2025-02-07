@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Heart, ArrowRight } from "lucide-react";
+import { Heart, ArrowRight } from "lucide-react";
 import { IoIosMale, IoIosFemale } from "react-icons/io";
 
 export default function Home() {
@@ -10,9 +10,9 @@ export default function Home() {
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [roomCode, setRoomCode] = useState<string>("");
   const [roomLink, setRoomLink] = useState<string>("");
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [copySuccess] = useState(false);
   const [error, setError] = useState<string>("");
-  const [step, setStep] = useState<"gender" | "action">("gender");
+  // const [step, setStep] = useState<"gender" | "action">("gender");
   const [backgroundImage, setBackgroundImage] = useState<string>("");
   const [isStartDisabled, setIsStartDisabled] = useState<boolean>(false);
 
@@ -22,6 +22,8 @@ export default function Home() {
     // setBackgroundImage(`/langin-bg/${randomImage}.jpg`);
     setBackgroundImage(`/langin-bg/3.jpg`);
   }, []);
+
+  console.log("room link", roomLink);
 
   useEffect(() => {
     const existingGame = localStorage.getItem("gameSession");
@@ -137,17 +139,6 @@ export default function Home() {
     }
   };
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(roomLink);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      setError("Failed to copy link");
-      console.log(err);
-    }
-  };
-
   return (
     <div
       className="min-h-screen px-4"
@@ -181,7 +172,7 @@ export default function Home() {
             Love Match Quiz
           </h1>
           <p className="text-gray-600">
-            Discover your compatibility this Valentine's Day!
+            Discover your compatibility this Valentine&#39;s Day!
           </p>
         </motion.div>
 
@@ -302,7 +293,7 @@ export default function Home() {
             transition={{ delay: 0.5 }}
             className="text-center text-sm py-1 px-2 rounded-xl  text-white bg-[#08080846]"
           >
-            Made with 💝 for Valentine's Day 2025
+            Made with 💝 for Valentine&#39;s Day 2025
           </motion.div>
         </div>
       </motion.div>
