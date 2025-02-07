@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { Heart } from "lucide-react";
 
 export interface DatePlannerResult {
   dateVibe: string;
@@ -19,7 +20,7 @@ const DateVibeCard = ({
 }) => {
   // Generate a random number once when the component mounts
   const [randomImageNumber] = useState<number>(
-    () => Math.floor(Math.random() * 8) + 1
+    () => Math.floor(Math.random() * 4) + 1
   );
 
   if (!datePlan && !isLoading) return null;
@@ -30,7 +31,7 @@ const DateVibeCard = ({
       <div
         className="absolute inset-0 w-full h-full bg-cover bg-center"
         style={{
-          backgroundImage: `url(/date-night/${randomImageNumber}.jpg)`,
+          backgroundImage: `url(/date-night/${1}.jpg)`,
         }}
       />
 
@@ -56,7 +57,7 @@ const DateVibeCard = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring" }}
-            className="text-7xl mb-6 text-center"
+            className="text-7xl mb-6 text-center absolute top-28 left-0 right-0"
           >
             {datePlan?.emoji}
           </motion.div>

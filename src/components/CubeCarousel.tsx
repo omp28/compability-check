@@ -1,69 +1,89 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import LoveMeter from "./LoveMeter";
+import MatchResultsViewer from "./MatchResultsViewer";
+import DateVibeCard from "./DareVibeCard";
 
 interface SlideContent {
   content: React.ReactNode;
 }
 
-const slides: SlideContent[] = [
-  {
-    content: (
-      <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white drop-shadow-lg">
-          Our Story
-        </h2>
-        <p className="text-sm md:text-lg text-white/90 drop-shadow">
-          Every love story is beautiful, but ours is my favorite. Journey
-          through our precious moments together.
-        </p>
-      </div>
-    ),
-  },
-  {
-    content: (
-      <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white drop-shadow-lg">
-          Sweet Memories
-        </h2>
-        <p className="text-sm md:text-lg text-white/90 drop-shadow">
-          Each moment spent with you becomes a beautiful memory that I'll
-          cherish forever.
-        </p>
-      </div>
-    ),
-  },
-  {
-    content: (
-      <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white drop-shadow-lg">
-          Forever Yours
-        </h2>
-        <p className="text-sm md:text-lg text-white/90 drop-shadow">
-          In your arms is where I belong, and in your heart is where I want to
-          stay.
-        </p>
-      </div>
-    ),
-  },
-  {
-    content: (
-      <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white drop-shadow-lg">
-          True Love
-        </h2>
-        <p className="text-sm md:text-lg text-white/90 drop-shadow">
-          Love isn't about finding someone perfect, it's about seeing someone
-          perfectly imperfect.
-        </p>
-      </div>
-    ),
-  },
-];
+interface DatePlannerResult {
+  dateVibe: string;
+  aesthetic: string;
+  emoji: string;
+  coupleHashtag: string;
+  generatedAt: string;
+}
 
-const CubeCarousel = () => {
+interface CubeCarouselProps {
+  score: number;
+  compatibility: {
+    level: string;
+    message: string;
+  };
+  matchResults: any[]; // Type this properly based on your matchResults structure
+  summary: {
+    totalQuestions: number;
+    matchedAnswers: number;
+  };
+  socket: any; // Type this based on your socket implementation
+  roomCode: string;
+}
+
+const CubeCarousel: React.FC<CubeCarouselProps> = ({
+  score,
+  compatibility,
+  matchResults,
+  summary,
+  socket,
+  roomCode,
+}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [datePlan, setDatePlan] = useState<DatePlannerResult | null>(null);
+  const [isDatePlanLoading, setIsDatePlanLoading] = useState<boolean>(false);
+
+  const handleDatePlanGenerated = (plan: DatePlannerResult | null) => {
+    setDatePlan(plan);
+    setIsDatePlanLoading(false);
+  };
+
+  const slides: SlideContent[] = [
+    // {
+    //   content: (
+    //     <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
+    //       <LoveMeter
+    //         score={score}
+    //         compatibility={compatibility}
+    //         matchResults={matchResults}
+    //         summary={summary}
+    //       />
+    //     </div>
+    //   ),
+    // },
+
+    {
+      content: (
+        <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
+          <DateVibeCard datePlan={datePlan} isLoading={isDatePlanLoading} />
+        </div>
+      ),
+    },
+    {
+      content: (
+        <div className="w-full h-full flex flex-col justify-center p-6 md:p-8">
+          <MatchResultsViewer
+            gameState={{ matchResults }}
+            socket={socket}
+            roomCode={roomCode}
+            onDatePlanGenerated={handleDatePlanGenerated}
+          />
+        </div>
+      ),
+    },
+  ];
 
   useEffect(() => {
     const updateDimensions = () => {

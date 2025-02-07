@@ -67,7 +67,7 @@ export function QuestionCard({
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex items-center justify-center p-8  ">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center p-8   ">
       <motion.div
         key={question}
         initial={{ scale: 0.9, opacity: 0 }}
@@ -106,7 +106,7 @@ export function QuestionCard({
 
         {/* Question header */}
         <motion.div
-          className="m-4 text-center relative text-white"
+          className="m-4 text-center relative text-white "
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
@@ -122,6 +122,8 @@ export function QuestionCard({
             size={20}
           />
         </motion.div>
+
+        {/* options */}
 
         <AnimatePresence>
           {options.map((option, index) => (
@@ -140,7 +142,7 @@ export function QuestionCard({
                 "border-2",
                 isAnswerSubmitted
                   ? "cursor-not-allowed opacity-75"
-                  : "hover:border-pink-400 hover:bg-pink-50",
+                  : "hover:border-pink-400 hover:bg-pink-50 hover:text-black",
                 selectedOption === option.id
                   ? "border-pink-500 bg-pink-50 text-pink-700"
                   : "border-gray-200 text-gray-700"

@@ -14,6 +14,7 @@ import { TimeLoader } from "./TimeLoader";
 import LoveMeter from "./LoveMeter";
 import MatchResultsViewer from "./MatchResultsViewer";
 import { Heart, Clock, RefreshCw, Sparkles, ArrowRight } from "lucide-react";
+import CubeCarousel from "./CubeCarousel";
 
 let socket: Socket;
 
@@ -429,31 +430,22 @@ export const GameRoom = () => {
                   {...fadeInUp}
                   className="w-full max-w-2xl mx-auto"
                 >
-                  <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl p-6 md:p-8">
-                    <LoveMeter
-                      score={gameState.score || 0}
-                      compatibility={
-                        gameState.compatibility || {
-                          level: "Low",
-                          message: "Keep learning!",
-                        }
+                  <CubeCarousel
+                    score={gameState.score || 0}
+                    compatibility={
+                      gameState.compatibility || {
+                        level: "Low",
+                        message: "Keep learning!",
                       }
-                      matchResults={gameState.matchResults || []}
-                      summary={
-                        gameState.summary || {
-                          totalQuestions: gameState.totalQuestions,
-                          matchedAnswers: 0,
-                        }
-                      }
-                    />
-                    {gameState.matchResults && (
-                      <MatchResultsViewer
-                        gameState={gameState}
-                        socket={socket}
-                        roomCode={session.roomId}
-                      />
-                    )}
-                  </div>
+                    }
+                    matchResults={gameState.matchResults || []}
+                    summary={{
+                      totalQuestions: gameState.totalQuestions,
+                      matchedAnswers: gameState.matchResults?.length || 0,
+                    }}
+                    socket={socket}
+                    roomCode={session.roomId}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

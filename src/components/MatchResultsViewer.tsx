@@ -89,7 +89,10 @@ const MatchResultsViewer = ({
   gameState,
   socket,
   roomCode,
-}: MatchResultsViewerProps) => {
+  onDatePlanGenerated,
+}: MatchResultsViewerProps & {
+  onDatePlanGenerated: (plan: DatePlannerResult | null) => void;
+}) => {
   const [gifUrl, setGifUrl] = useState<string>("");
   const [datePlan, setDatePlan] = useState<DatePlannerResult | null>(null);
   const [isGifLoading, setIsGifLoading] = useState<boolean>(false);
@@ -114,7 +117,9 @@ const MatchResultsViewer = ({
 
     socket.on("date_plan_generated", (response) => {
       setIsDatePlanLoading(false);
-      if (response.success) setDatePlan(response.plan);
+      if (response.success) {
+        onDatePlanGenerated(response.plan);
+      }
     });
 
     socket.on("gif_error", (errorMessage) => {
@@ -125,6 +130,7 @@ const MatchResultsViewer = ({
     socket.on("date_plan_error", (errorMessage) => {
       setIsDatePlanLoading(false);
       setError((prev) => `${prev} Date Plan Error: ${errorMessage}`);
+      onDatePlanGenerated(null);
     });
 
     return () => {
@@ -135,7 +141,7 @@ const MatchResultsViewer = ({
       socket.off("gif_error");
       socket.off("date_plan_error");
     };
-  }, [socket]);
+  }, [socket, onDatePlanGenerated]);
 
   const startQuestionAnimation = () => {
     setCurrentQuestion(0);
@@ -160,23 +166,12 @@ const MatchResultsViewer = ({
     socket.emit("request_match_results", { roomCode, matchData });
   };
 
+  useEffect(() => {
+    generateResults();
+  }, []);
+
   return (
     <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
-      <Button
-        onClick={generateResults}
-        disabled={isGifLoading || isDatePlanLoading}
-        className="w-64 mx-auto block"
-      >
-        {isGifLoading || isDatePlanLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating Results...
-          </>
-        ) : (
-          "Generate Results"
-        )}
-      </Button>
-
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -233,8 +228,6 @@ const MatchResultsViewer = ({
             </AnimatePresence>
           </Card>
         )}
-
-        <DateVibeCard datePlan={datePlan} isLoading={isDatePlanLoading} />
       </div>
     </div>
   );
