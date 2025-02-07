@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { QuestionCard } from "./QuestionCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,11 +13,21 @@ import ShareLinkButton from "./ShareLink";
 import { TimeLoader } from "./TimeLoader";
 import LoveMeter from "./LoveMeter";
 import MatchResultsViewer from "./MatchResultsViewer";
-import { Heart, Clock, RefreshCw } from "lucide-react";
+import { Heart, Clock, RefreshCw, Sparkles, ArrowRight } from "lucide-react";
 
 let socket: Socket;
 
 export const GameRoom = () => {
+  const [currentBg, setCurrentBg] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const router = useRouter();
   const [gameState, setGameState] = useState<GameState>({
     currentQuestion: 0,
@@ -31,6 +41,27 @@ export const GameRoom = () => {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [disconnected, setDisconnected] = useState(false);
   const [error, setError] = useState("");
+
+  const texts = [
+    "Deepen Connection",
+    "Have Fun Together",
+    "Learn About Each Other",
+    "Create Lasting Memories",
+    "Laugh Together",
+    "Grow Closer",
+    "Share Joy",
+    "Discover New Things",
+  ];
+
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTextIndex((prevIndex) => (prevIndex + 1) % texts.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const storedSession = localStorage.getItem("gameSession");
@@ -216,160 +247,229 @@ export const GameRoom = () => {
 
   if (!session) return null;
 
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-red-100 to-purple-100 p-4">
+    <div className="">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+        style={{
+          // backgroundImage: `url(/langin-bg/3.jpg)`,
+          backgroundImage: `url(/date-night/7.jpg)`,
+          opacity: 0.3,
+        }}
+      />
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 " />
+
       <AnimatePresence>
-        {disconnected && (
+        {isLoading ? (
           <motion.div
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            exit={{ y: -100 }}
-            className="fixed top-0 left-0 right-0 bg-red-500 text-white p-4 text-center z-30"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-pink-500 to-red-500 "
           >
-            <p className="font-semibold">
-              Disconnected. Trying to reconnect...
-            </p>
-          </motion.div>
-        )}
-
-        {error && (
-          <motion.div
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            exit={{ y: -100 }}
-            className="fixed top-0 left-0 right-0 bg-yellow-500 text-white p-4 text-center z-30"
-          >
-            <p className="font-semibold">{error}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence mode="wait">
-        {gameState.gameStatus === "waiting" && (
-          <motion.div
-            key="waiting"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="flex items-center justify-center min-h-screen"
-          >
-            <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+            <motion.div
+              animate={{
+                scale: [1, 1.2, 1],
+                rotate: [0, 180, 360],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="relative"
+            >
+              <Heart className="w-24 h-24 text-white" fill="white" />
               <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute inset-0"
               >
-                <Heart
-                  className="w-16 h-16 text-pink-500 mx-auto mb-6"
-                  fill="currentColor"
-                />
+                <Sparkles className="absolute -top-4 -right-4 w-8 h-8 text-yellow-300" />
+                <Sparkles className="absolute -bottom-4 -left-4 w-8 h-8 text-yellow-300" />
               </motion.div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">
-                Waiting for your soulmate...
-              </h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Room Code:{" "}
-                <span className="font-bold text-pink-600">
-                  {session.roomId}
-                </span>
-              </p>
-              <ShareLinkButton roomId={session.roomId} />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleCleaGameSession}
-                className="mt-8 bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-all font-semibold"
-              >
-                Start New Love Story
-              </motion.button>
-            </div>
+            </motion.div>
           </motion.div>
-        )}
-
-        {gameState.gameStatus === "in_progress" && (
-          <motion.div
-            key="in-progress"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 mt-10"
-          >
-            <div className="mb-6 flex justify-between items-center">
-              <div className="flex items-center">
-                <Clock className="w-6 h-6 text-pink-500 mr-2" />
-                <TimeLoader seconds={gameState.timeRemaining} />
-              </div>
-              <div className="text-lg font-semibold text-gray-700">
-                Q{gameState.currentQuestion + 1}/{gameState.totalQuestions}
-              </div>
-            </div>
-
+        ) : (
+          <div className="relative min-h-screen flex flex-col items-center justify-center">
+            {/* Error and Disconnect Notifications */}
             <AnimatePresence>
-              {hasAnswered && !gameState.partnerSubmitted && (
+              {disconnected && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-center text-green-600 mb-4 font-medium"
+                  {...fadeInUp}
+                  className="fixed top-0 left-0 right-0 bg-red-500 text-white p-4 text-center z-30 shadow-lg"
                 >
-                  Waiting for your partner&apos;s answer...
+                  <p className="font-semibold flex items-center justify-center gap-2">
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    Reconnecting to your love story...
+                  </p>
                 </motion.div>
               )}
 
-              {!hasAnswered && gameState.partnerSubmitted && (
+              {error && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-center text-green-600 mb-4 font-medium"
+                  {...fadeInUp}
+                  className="fixed top-0 left-0 right-0 bg-yellow-500 text-white p-4 text-center z-30 shadow-lg"
                 >
-                  Your partner has answered! Your turn now.
+                  <p className="font-semibold">{error}</p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <QuestionCard
-              question={gameState.question?.text || "Loading question..."}
-              options={gameState.question?.options || []}
-              onSubmit={handleAnswer}
-              isLoading={hasAnswered}
-            />
-          </motion.div>
-        )}
+            <AnimatePresence mode="wait">
+              {gameState.gameStatus === "waiting" && (
+                <motion.div
+                  key="waiting"
+                  className="flex items-center justify-center w-full max-w-md mx-auto"
+                  {...fadeInUp}
+                >
+                  <div className="w-full bg-black/5 backdrop-blur-sm rounded-3xl shadow-2xl p-8  border border-pink-800/20">
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="relative mb-8"
+                    >
+                      <Heart
+                        className="w-20 h-20 mx-auto text-pink-500"
+                        fill="currentColor"
+                      />
+                      <motion.div
+                        animate={{
+                          opacity: [0, 1, 0],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-yellow-600" />
+                      </motion.div>
+                    </motion.div>
 
-        {gameState.gameStatus === "completed" && (
-          <motion.div
-            key="completed"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="max-w-2xl mx-auto mt-10"
-          >
-            <LoveMeter
-              score={gameState.score || 0}
-              compatibility={
-                gameState.compatibility || {
-                  level: "Low",
-                  message: "Keep learning!",
-                }
-              }
-              matchResults={gameState.matchResults || []}
-              summary={
-                gameState.summary || {
-                  totalQuestions: gameState.totalQuestions,
-                  matchedAnswers: 0,
-                }
-              }
-            />
-            {gameState.matchResults && (
-              <MatchResultsViewer
-                gameState={gameState}
-                socket={socket}
-                roomCode={session.roomId}
-              />
-            )}
-          </motion.div>
+                    <div className="h-16 mb-6">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={currentTextIndex}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex flex-col items-center gap-2"
+                        >
+                          <h2 className="text-xl font-bold text-white">
+                            {texts[currentTextIndex]}
+                          </h2>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    <div className="space-y-6">
+                      <ShareLinkButton roomId={session.roomId} />
+                      <div className="bg-pink-50 rounded-2xl p-4">
+                        <p className="text-lg text-gray-700">
+                          Your Room Code:{" "}
+                          <span className="font-bold text-pink-600 text-xl">
+                            {session.roomId}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {gameState.gameStatus === "in_progress" && (
+                <motion.div
+                  key="in-progress"
+                  {...fadeInUp}
+                  className="w-full max-w-2xl mx-auto"
+                >
+                  <TimeLoader seconds={gameState.timeRemaining} />
+
+                  <AnimatePresence>
+                    <QuestionCard
+                      question={
+                        gameState.question?.text || "Loading question..."
+                      }
+                      options={gameState.question?.options || []}
+                      onSubmit={handleAnswer}
+                      isLoading={hasAnswered}
+                      hasAnswered={hasAnswered}
+                      partnerSubmitted={gameState.partnerSubmitted}
+                    />
+                  </AnimatePresence>
+                </motion.div>
+              )}
+
+              {gameState.gameStatus === "completed" && (
+                <motion.div
+                  key="completed"
+                  {...fadeInUp}
+                  className="w-full max-w-2xl mx-auto"
+                >
+                  <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl p-6 md:p-8">
+                    <LoveMeter
+                      score={gameState.score || 0}
+                      compatibility={
+                        gameState.compatibility || {
+                          level: "Low",
+                          message: "Keep learning!",
+                        }
+                      }
+                      matchResults={gameState.matchResults || []}
+                      summary={
+                        gameState.summary || {
+                          totalQuestions: gameState.totalQuestions,
+                          matchedAnswers: 0,
+                        }
+                      }
+                    />
+                    {gameState.matchResults && (
+                      <MatchResultsViewer
+                        gameState={gameState}
+                        socket={socket}
+                        roomCode={session.roomId}
+                      />
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </AnimatePresence>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={handleCleaGameSession}
+        className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white px-6 py-4 rounded-t-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+      >
+        Start New Game
+      </motion.button>
     </div>
   );
 };
+
+export default GameRoom;

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Heart, ArrowRight } from "lucide-react";
-import { FaMale, FaFemale } from "react-icons/fa";
+import { IoIosMale, IoIosFemale } from "react-icons/io";
 
 export default function Home() {
   const router = useRouter();
@@ -13,6 +13,15 @@ export default function Home() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [error, setError] = useState<string>("");
   const [step, setStep] = useState<"gender" | "action">("gender");
+  const [backgroundImage, setBackgroundImage] = useState<string>("");
+  const [isStartDisabled, setIsStartDisabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Randomly select an image from the public/date-night/ folder (1 to 8)
+    // const randomImage = Math.floor(Math.random() * 3) + 1;
+    // setBackgroundImage(`/langin-bg/${randomImage}.jpg`);
+    setBackgroundImage(`/langin-bg/3.jpg`);
+  }, []);
 
   useEffect(() => {
     const existingGame = localStorage.getItem("gameSession");
@@ -30,6 +39,9 @@ export default function Home() {
     const joinCode = router.query.join;
     if (joinCode && typeof joinCode === "string") {
       setRoomCode(joinCode);
+      setIsStartDisabled(true);
+    } else {
+      setIsStartDisabled(false);
     }
   }, [router.query]);
 
@@ -79,7 +91,6 @@ export default function Home() {
     }
   };
 
-  // In Home component (index.tsx)
   const joinRoom = async () => {
     if (!gender) {
       setError("Please select your gender first!");
@@ -138,167 +149,162 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-red-100 to-purple-100 p-4 flex items-center justify-center">
+    <div
+      className="min-h-screen px-4"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md mx-auto pt-8"
       >
         <motion.div
-          className="text-center mb-8"
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          transition={{ delay: 0.2 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          className="flex justify-center mb-6"
         >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          >
-            <Heart
-              className="w-16 h-16 text-pink-500 mx-auto mb-4"
-              fill="currentColor"
-            />
-          </motion.div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Love Connection
+          <Heart className="w-20 h-20 text-red-500" fill="currentColor" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-800 mb-3">
+            Love Match Quiz
           </h1>
           <p className="text-gray-600">
-            Discover your compatibility this Valentine&apos;s Day!
+            Discover your compatibility this Valentine's Day!
           </p>
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          {error && (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-red-50 text-red-500 p-4 rounded-xl mb-6 text-center font-medium"
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence mode="wait">
-          {step === "gender" ? (
-            <motion.div
-              key="gender"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 50 }}
-            >
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                Choose Your Role
-              </h2>
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setGender("male");
-                    setStep("action");
-                  }}
-                  className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center ${
-                    gender === "male"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <FaMale className="w-12 h-12 text-blue-500 mb-2" />
-                  <span className="font-medium text-gray-700">Romeo</span>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setGender("female");
-                    setStep("action");
-                  }}
-                  className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center ${
-                    gender === "female"
-                      ? "border-pink-500 bg-pink-50"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <FaFemale className="w-12 h-12 text-pink-500 mb-2" />
-                  <span className="font-medium text-gray-700">Juliet</span>
-                </motion.button>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="action"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="space-y-6"
-            >
+        <motion.div
+          className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-pink-100"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="space-y-6">
+            <div className="flex gap-4">
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={createRoom}
-                className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white py-4 rounded-xl hover:from-pink-600 hover:to-red-600 transition-all font-semibold text-lg shadow-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setGender("male")}
+                className={`flex-1 p-4 rounded-2xl border-2 transition-all text-black ${
+                  gender === "male"
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 hover:border-blue-200"
+                }`}
               >
-                Start a Love Story
+                <div className="text-center">
+                  <span className="block text-2xl mb-1">
+                    <IoIosMale />
+                  </span>
+                  <span className="font-medium">Romeo</span>
+                </div>
               </motion.button>
 
-              {roomLink && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl border border-gray-200"
-                >
-                  <input
-                    type="text"
-                    value={roomLink}
-                    readOnly
-                    className="flex-1 bg-transparent border-none focus:outline-none text-sm text-gray-600"
-                  />
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={copyLink}
-                    className={`p-2 rounded-lg transition-all ${
-                      copySuccess
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    }`}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setGender("female")}
+                className={`flex-1 p-4 rounded-2xl border-2 transition-all text-black ${
+                  gender === "female"
+                    ? "border-pink-500 bg-pink-50 text-pink-700"
+                    : "border-gray-200 hover:border-pink-200"
+                }`}
+              >
+                <div className="text-center">
+                  <span className="block text-2xl mb-1 ">
+                    <IoIosFemale />
+                  </span>
+                  <span className="font-medium">Juliet</span>
+                </div>
+              </motion.button>
+            </div>
+
+            <div className="relative">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={createRoom}
+                disabled={!gender || isStartDisabled}
+                className={`w-full py-4 rounded-xl text-white font-semibold text-lg shadow-lg transition-all ${
+                  gender && !isStartDisabled
+                    ? "bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
+              >
+                Start New Game
+              </motion.button>
+
+              <AnimatePresence>
+                {copySuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute -top-10 left-0 right-0 text-center text-green-600 bg-green-100 rounded-lg py-1"
                   >
-                    <Copy className="w-5 h-5" />
-                  </motion.button>
-                </motion.div>
-              )}
+                    Link copied! 💕
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-              <div className="relative flex items-center gap-2">
-                <div className="flex-grow border-t border-gray-200"></div>
-                <span className="text-gray-500 font-medium">or</span>
-                <div className="flex-grow border-t border-gray-200"></div>
-              </div>
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-gray-200"></div>
+              <span className="text-gray-500">or</span>
+              <div className="h-px flex-1 bg-gray-200"></div>
+            </div>
 
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                  placeholder="Enter love code"
-                  className="flex-1 p-4 rounded-xl border-2 border-gray-200 focus:border-pink-500 outline-none text-gray-700 text-lg placeholder-gray-400"
-                />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={joinRoom}
-                  className="bg-pink-500 text-white px-6 rounded-xl hover:bg-pink-600 transition-all flex items-center justify-center"
-                >
-                  <ArrowRight className="w-6 h-6" />
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                maxLength={6}
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                placeholder="Enter room code"
+                className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-500 outline-none text-gray-700 placeholder-gray-400"
+              />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={joinRoom}
+                disabled={!gender || !roomCode}
+                className={`px-6 rounded-xl flex items-center justify-center ${
+                  gender && roomCode
+                    ? "bg-pink-500 hover:bg-pink-600 text-white"
+                    : "bg-gray-300 cursor-not-allowed text-gray-500"
+                }`}
+              >
+                <ArrowRight className="w-6 h-6" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className=" flex justify-center items-center mt-12">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center text-sm py-1 px-2 rounded-xl  text-white bg-[#08080846]"
+          >
+            Made with 💝 for Valentine's Day 2025
+          </motion.div>
+        </div>
       </motion.div>
     </div>
   );
