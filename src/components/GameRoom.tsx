@@ -428,7 +428,7 @@ export const GameRoom = () => {
                 <motion.div
                   key="completed"
                   {...fadeInUp}
-                  className="w-full max-w-2xl mx-auto"
+                  className="w-full max-w-2xl mx-auto "
                 >
                   <CubeCarousel
                     score={gameState.score || 0}

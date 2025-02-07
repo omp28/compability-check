@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { Socket } from "socket.io-client";
-import DateVibeCard from "./DareVibeCard";
+import { Loader2, Heart, RefreshCw } from "lucide-react";
+import type { Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PlayerAnswer {
@@ -100,6 +99,7 @@ const MatchResultsViewer = ({
   const [error, setError] = useState<string>("");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showAnswers, setShowAnswers] = useState(false);
+  const [isInfiniteLoop, setIsInfiniteLoop] = useState(false);
 
   const matchData = transformMatchData(gameState);
 
@@ -149,85 +149,141 @@ const MatchResultsViewer = ({
   };
 
   useEffect(() => {
-    if (showAnswers && currentQuestion < matchData.matchResults.length - 1) {
+    if (showAnswers && isInfiniteLoop) {
       const timer = setTimeout(() => {
         setShowAnswers(false);
         setTimeout(() => {
-          setCurrentQuestion((prev) => prev + 1);
+          setCurrentQuestion(
+            (prev) => (prev + 1) % matchData.matchResults.length
+          );
           setShowAnswers(true);
         }, 500);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [currentQuestion, showAnswers, matchData.matchResults.length]);
+  }, [
+    currentQuestion,
+    showAnswers,
+    isInfiniteLoop,
+    matchData.matchResults.length,
+  ]);
 
   const generateResults = () => {
     setError("");
     socket.emit("request_match_results", { roomCode, matchData });
   };
 
+  const toggleInfiniteLoop = () => {
+    setIsInfiniteLoop(!isInfiniteLoop);
+    if (!isInfiniteLoop) {
+      // Start the animation from the beginning
+      setCurrentQuestion(0);
+      setShowAnswers(true);
+    }
+  };
+
   useEffect(() => {
     generateResults();
+    toggleInfiniteLoop();
   }, []);
 
   return (
-    <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-      <div className="grid md:grid-cols-2 gap-6">
-        {gifUrl && (
-          <Card className="relative overflow-hidden">
-            <img
-              src={gifUrl}
-              alt="Match Results Animation"
-              className="w-full h-auto"
-            />
-            <AnimatePresence>
-              {showAnswers && (
-                <div className="absolute inset-0 bg-black/30 p-6 flex flex-col items-center justify-center">
-                  <motion.div
-                    initial={{ y: -50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 50, opacity: 0 }}
-                    className="text-2xl text-white text-center font-bold mb-8"
-                  >
-                    {matchData.matchResults[currentQuestion].question}
-                  </motion.div>
-                  <div className="flex justify-between w-full px-8">
-                    <motion.div
-                      initial={{ x: -100, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: -100, opacity: 0 }}
-                      className="bg-blue-500/80 p-4 rounded-lg"
-                    >
-                      <div className="text-white text-lg">His Answer:</div>
-                      <div className="text-white font-bold text-xl">
-                        {
-                          matchData.matchResults[currentQuestion].playerAnswers
-                            .male.answerText
-                        }
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      initial={{ x: 100, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: 100, opacity: 0 }}
-                      className="bg-pink-500/80 p-4 rounded-lg"
-                    >
-                      <div className="text-white text-lg">Her Answer:</div>
-                      <div className="text-white font-bold text-xl">
-                        {
-                          matchData.matchResults[currentQuestion].playerAnswers
-                            .female.answerText
-                        }
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-              )}
-            </AnimatePresence>
-          </Card>
+    <div className="fixed inset-0 w-full h-full bg-gradient-to-b from-pink-100 to-red-200 overflow-hidden">
+      <div className="h-full w-full flex flex-col">
+        {error && (
+          <p className="text-red-500 text-sm text-center bg-white/80 rounded-lg p-2 m-4">
+            {error}
+          </p>
         )}
+
+        <Card className="flex-1 bg-white/90 shadow-lg rounded-none border-0">
+          <CardContent className="p-0 h-full">
+            {gifUrl ? (
+              <div className="relative h-full">
+                <img
+                  src={gifUrl || "/placeholder.svg"}
+                  alt="Match Results Animation"
+                  className="w-full h-full object-cover"
+                />
+                <AnimatePresence>
+                  {showAnswers && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-gradient-to-b from-pink-500/50 to-red-500/5 p-6 flex flex-col items-center justify-center"
+                    >
+                      <motion.div
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 20, opacity: 0 }}
+                        className="text-3xl text-white text-center font-bold mb-8 shadow-text"
+                      >
+                        {matchData.matchResults[currentQuestion].question}
+                      </motion.div>
+                      <div className="flex flex-col w-full max-w-2xl space-y-6">
+                        <motion.div
+                          initial={{ x: -50, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          exit={{ x: -50, opacity: 0 }}
+                          className="bg-blue-600/90 p-4 rounded-lg"
+                        >
+                          <div className="text-white text-lg">His Answer:</div>
+                          <div className="text-white font-bold text-xl">
+                            {
+                              matchData.matchResults[currentQuestion]
+                                .playerAnswers.male.answerText
+                            }
+                          </div>
+                        </motion.div>
+                        <motion.div
+                          initial={{ x: 50, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          exit={{ x: 50, opacity: 0 }}
+                          className="bg-pink-600/90 p-4 rounded-lg"
+                        >
+                          <div className="text-white text-lg">Her Answer:</div>
+                          <div className="text-white font-bold text-xl">
+                            {
+                              matchData.matchResults[currentQuestion]
+                                .playerAnswers.female.answerText
+                            }
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <Heart className="w-24 h-24 text-red-500 animate-pulse" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="p-4 flex space-x-2">
+          {!gifUrl && !isGifLoading && (
+            <Button
+              onClick={generateResults}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-full transition-all duration-300 transform hover:scale-105"
+            >
+              Generate Results
+            </Button>
+          )}
+
+          {(isGifLoading || isDatePlanLoading) && (
+            <div className="flex items-center justify-center space-x-2 py-4">
+              <Loader2 className="h-6 w-6 animate-spin text-red-500" />
+              <p className="text-red-500 font-medium">
+                {isGifLoading
+                  ? "Generating your love story..."
+                  : "Planning your perfect date..."}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
