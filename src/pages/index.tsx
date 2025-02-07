@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ArrowRight } from "lucide-react";
-import { IoIosMale, IoIosFemale } from "react-icons/io";
+// import { IoIosMale, IoIosFemale } from "react-icons/io";
 
 export default function Home() {
   const router = useRouter();
@@ -169,7 +169,7 @@ export default function Home() {
           className="text-center mb-8"
         >
           <h1 className="text-4xl font-bold text-gray-800 mb-3">
-            Love Match Quiz
+            Who Knows Better
           </h1>
           <p className="text-gray-600">
             Discover your compatibility this Valentine&#39;s Day!
@@ -196,9 +196,9 @@ export default function Home() {
               >
                 <div className="text-center">
                   <span className="block text-2xl mb-1">
-                    <IoIosMale />
+                    {/* <IoIosMale /> */}
                   </span>
-                  <span className="font-medium">Romeo</span>
+                  <span className="font-medium">Male</span>
                 </div>
               </motion.button>
 
@@ -214,9 +214,9 @@ export default function Home() {
               >
                 <div className="text-center">
                   <span className="block text-2xl mb-1 ">
-                    <IoIosFemale />
+                    {/* <IoIosFemale /> */}
                   </span>
-                  <span className="font-medium">Juliet</span>
+                  <span className="font-medium">Female</span>
                 </div>
               </motion.button>
             </div>

@@ -5,7 +5,6 @@ import { Loader2, Heart } from "lucide-react";
 import type { Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useCallback } from "react";
 
 interface PlayerAnswer {
   answerText: string;
@@ -170,24 +169,24 @@ const MatchResultsViewer = ({
     matchData.matchResults.length,
   ]);
 
-  const generateResults = useCallback(() => {
+  const generateResults = () => {
     setError("");
     socket.emit("request_match_results", { roomCode, matchData });
-  }, [roomCode]);
+  };
 
-  const toggleInfiniteLoop = useCallback(() => {
+  const toggleInfiniteLoop = () => {
     setIsInfiniteLoop(!isInfiniteLoop);
     if (!isInfiniteLoop) {
       // Start the animation from the beginning
       setCurrentQuestion(0);
       setShowAnswers(true);
     }
-  }, [isInfiniteLoop]);
+  };
 
   useEffect(() => {
     generateResults();
     toggleInfiniteLoop();
-  }, [generateResults, toggleInfiniteLoop]);
+  }, []);
 
   return (
     <div className="fixed inset-0 w-full h-full bg-gradient-to-b from-pink-100 to-red-200 overflow-hidden">
@@ -203,7 +202,7 @@ const MatchResultsViewer = ({
             {gifUrl ? (
               <div className="relative h-full">
                 <Image
-                  src={gifUrl || "/placeholder.svg"}
+                  src={gifUrl}
                   alt="Match Results Animation"
                   layout="fill"
                   objectFit="cover"

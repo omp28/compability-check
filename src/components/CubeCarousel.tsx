@@ -17,23 +17,23 @@ interface DatePlannerResult {
   generatedAt: string;
 }
 
-interface Option {
+export interface Option {
   id: string;
   text: string;
 }
 
-interface MatchResult {
+export interface PlayerAnswer {
+  gender: "male" | "female";
+  answer: string;
+  answerText: string;
+}
+
+export interface MatchResult {
   questionId: number;
   question: string;
   options: Option[];
   matched: boolean;
-  playerAnswers: {
-    [playerId: string]: {
-      gender: string;
-      answer: string;
-      answerText: string;
-    };
-  };
+  playerAnswers: Record<string, PlayerAnswer>;
 }
 
 interface CubeCarouselProps {
