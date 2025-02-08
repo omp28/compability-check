@@ -160,7 +160,6 @@ export const GameRoom = () => {
     });
 
     socket.on("question_timeout", () => {
-      console.log("Question timed out");
       setHasAnswered(false);
       setGameState((prev) => ({
         ...prev,

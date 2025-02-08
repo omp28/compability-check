@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Heart } from "lucide-react";
 import type { Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+// import Image from "next/image";
 
 interface PlayerAnswer {
   answerText: string;
@@ -201,13 +201,12 @@ const MatchResultsViewer = ({
           <CardContent className="p-0 h-full">
             {gifUrl ? (
               <div className="relative h-full">
-                <Image
+                <img
                   src={gifUrl}
                   alt="Match Results Animation"
-                  layout="fill"
-                  objectFit="cover"
-                  className="w-full h-full"
+                  className="w-full h-full object-cover"
                 />
+
                 <AnimatePresence>
                   {showAnswers && (
                     <motion.div
