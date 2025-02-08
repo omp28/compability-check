@@ -172,12 +172,12 @@ export function QuestionCard({
 
         {hasAnswered && !partnerSubmitted && (
           <span className="text-sm text-gray-500 ml-2 ">
-            Waiting for your fave to drop their answer ✨🌙
+            You’ve answered—now waiting for your fave to respond! ✨🌙
           </span>
         )}
         {!hasAnswered && partnerSubmitted && (
           <span className="text-sm text-gray-500 ml-2 ">
-            Waiting for your fave to drop their answer ✨🌙
+            They’ve answered—now it’s your turn to respond! ✨🌙
           </span>
         )}
 

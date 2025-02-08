@@ -337,7 +337,7 @@ export const GameRoom = () => {
                   className="flex items-center justify-center w-full max-w-md mx-auto"
                   {...fadeInUp}
                 >
-                  <div className="w-full bg-black/5 backdrop-blur-sm rounded-3xl shadow-2xl p-8  border border-pink-800/20">
+                  <div className="w-full backdrop-blur-sm p-8">
                     <motion.div
                       animate={{
                         scale: [1, 1.1, 1],
@@ -385,7 +385,6 @@ export const GameRoom = () => {
                     </div>
 
                     <div className="space-y-6">
-                      <ShareLinkButton roomId={session.roomId} />
                       <div className="bg-pink-50 rounded-2xl p-4">
                         <p className="text-lg text-gray-700">
                           Your Room Code:{" "}
@@ -395,6 +394,7 @@ export const GameRoom = () => {
                         </p>
                       </div>
                     </div>
+                    <ShareLinkButton roomId={session.roomId} />
                   </div>
                 </motion.div>
               )}

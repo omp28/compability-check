@@ -177,28 +177,27 @@ export default function Home() {
         </motion.div>
 
         <motion.div
-          className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-pink-100"
+          className="bg-white/10 backdrop-blur-sm rounded-3xl p-4 sm:p-6 shadow-xl border border-pink-100"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="space-y-6">
-            <div className="flex gap-4">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Gender selection buttons */}
+            <div className="flex gap-2 sm:gap-4">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setGender("male")}
-                className={`flex-1 p-4 rounded-2xl border-2 transition-all text-black ${
+                className={`flex-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-black ${
                   gender === "male"
                     ? "border-blue-500 bg-blue-50 text-blue-700"
                     : "border-gray-200 hover:border-blue-200"
                 }`}
               >
                 <div className="text-center">
-                  <span className="block text-2xl mb-1">
-                    {/* <IoIosMale /> */}
-                  </span>
-                  <span className="font-medium">Male</span>
+                  <span className="block text-xl sm:text-2xl mb-1"></span>
+                  <span className="font-medium text-sm sm:text-base">Male</span>
                 </div>
               </motion.button>
 
@@ -206,34 +205,37 @@ export default function Home() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setGender("female")}
-                className={`flex-1 p-4 rounded-2xl border-2 transition-all text-black ${
+                className={`flex-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-black ${
                   gender === "female"
                     ? "border-pink-500 bg-pink-50 text-pink-700"
                     : "border-gray-200 hover:border-pink-200"
                 }`}
               >
                 <div className="text-center">
-                  <span className="block text-2xl mb-1 ">
-                    {/* <IoIosFemale /> */}
+                  <span className="block text-xl sm:text-2xl mb-1"></span>
+                  <span className="font-medium text-sm sm:text-base">
+                    Female
                   </span>
-                  <span className="font-medium">Female</span>
                 </div>
               </motion.button>
             </div>
 
+            {/* Start game button */}
             <div className="relative">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={createRoom}
                 disabled={!gender || isStartDisabled}
-                className={`w-full py-4 rounded-xl text-white font-semibold text-lg shadow-lg transition-all ${
+                className={`w-full py-3 sm:py-4 rounded-xl text-white font-semibold text-base sm:text-lg shadow-lg transition-all ${
                   gender && !isStartDisabled
-                    ? "bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
-                    : "bg-gray-300 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 "
+                    : "cursor-not-allowed bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
                 }`}
               >
-                Start New Game
+                {!gender || isStartDisabled
+                  ? "You Ready? Let's Go!"
+                  : "Start New Game"}
               </motion.button>
 
               <AnimatePresence>
@@ -260,38 +262,41 @@ export default function Home() {
               <p className="text-red-500 text-sm text-center">{error}</p>
             )}
 
-            <div className="flex gap-2">
+            {/* Join room section - modified for very small screens */}
+            <div className="max-[360px]:flex-col flex gap-2">
               <input
                 type="text"
                 maxLength={6}
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                 placeholder="Enter room code"
-                className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-500 outline-none text-gray-700 placeholder-gray-400"
+                className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-gray-200 focus:border-pink-500 outline-none text-gray-700 placeholder-gray-400"
               />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={joinRoom}
-                disabled={!gender || !roomCode}
-                className={`px-6 rounded-xl flex items-center justify-center ${
+                // disabled={!gender}
+                className={`max-[360px]:w-full px-3 sm:px-6 py-2 sm:py-3 rounded-xl flex items-center justify-center gap-2 ${
                   gender && roomCode
                     ? "bg-pink-500 hover:bg-pink-600 text-white"
                     : "bg-gray-300 cursor-not-allowed text-gray-500"
                 }`}
               >
-                <ArrowRight className="w-6 h-6" />
+                <span className="max-[360px]:block hidden">Join Room</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
             </div>
           </div>
         </motion.div>
 
-        <div className=" flex justify-center items-center mt-12">
+        {/* Footer section */}
+        <div className="flex justify-center items-center mt-8 sm:mt-12">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-center text-sm py-1 px-2 rounded-xl  text-white bg-[#08080846]"
+            className="text-center text-xs sm:text-sm py-1 px-2 rounded-xl text-white bg-[#08080846]"
           >
             Made with 💝 for Valentine&#39;s Day 2025
           </motion.div>

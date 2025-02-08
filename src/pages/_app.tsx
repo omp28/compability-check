@@ -4,6 +4,7 @@ import { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import Script from "next/script";
 import * as gtag from "../lib/gtag";
+import MobileOnlyWrapper from "@/components/MobileOnlyWrapper";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -36,7 +37,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         `}
       </Script>
 
-      <Component {...pageProps} />
+      <MobileOnlyWrapper>
+        <Component {...pageProps} />
+      </MobileOnlyWrapper>
     </>
   );
 }
