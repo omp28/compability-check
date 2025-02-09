@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 
 const EnjoymentComponent = () => {
-  const handlePlayAgain = () => {
+  useEffect(() => {
     localStorage.removeItem("gameSession");
+  }, []);
+
+  const handlePlayAgain = () => {
     window.location.href = "/";
   };
 

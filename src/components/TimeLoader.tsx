@@ -50,7 +50,7 @@ export const TimeLoader = ({ seconds, totalDuration = 40 }: TimeLoader) => {
           }}
         >
           <motion.div
-            className="w-8 h-8 relative flex items-center justify-center  "
+            className="w-8 h-8 relative flex items-center justify-center  translate-x-4 scale-125"
             style={{
               background: `linear-gradient(135deg, 
                 hsl(0, ${100 * progress}%, 50%), 
