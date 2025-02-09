@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://who-knows-better.fun/sitemap.xml
