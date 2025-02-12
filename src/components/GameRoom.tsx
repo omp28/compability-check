@@ -180,8 +180,17 @@ export const GameRoom = () => {
         return;
       }
 
+      console.log("-->>>", finalState);
+      console.log("-->>>", finalState.summary);
+      console.log("-->>>", finalState.summary.matchedAnswers);
+
       if (finalState.summary && finalState.summary.matchedAnswers === 0) {
-        setError("No matches found. Please try again.");
+        setError(
+          "No matches found, You'r not the Perfect Match, Please try again."
+        );
+        setTimeout(() => {
+          handleCleaGameSession();
+        }, 3000);
         return;
       }
 
